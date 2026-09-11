@@ -24,7 +24,7 @@ async def lifespan(app):
     yield
 
 
-app = FastAPI(title="OpsWeaver Local API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="OpsClaw Local API", version="0.1.0", lifespan=lifespan)
 
 
 @app.exception_handler(DomainError)

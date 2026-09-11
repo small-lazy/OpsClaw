@@ -1,19 +1,19 @@
-# OpsWeaver MCP 接入
+# OpsClaw MCP 接入
 
-MCP 适配器通过带令牌的本地 HTTP API 访问 OpsWeaver。当前实现并验证的目标传输方式是 **stdio**；HTTP MCP 尚未启用，`--http` 会明确退出，不会在 8102 端口启动服务。
+MCP 适配器通过带令牌的本地 HTTP API 访问 OpsClaw。当前实现并验证的目标传输方式是 **stdio**；HTTP MCP 尚未启用，`--http` 会明确退出，不会在 8102 端口启动服务。
 
 ## 安装与配置
 
-先安装后端依赖并启动 OpsWeaver API。默认 API 基址为 `http://127.0.0.1:8100/api/v1/mcp`。适配器从 `OPSWEAVER_MCP_TOKEN` 读取令牌，未设置时读取后端目录的 `data/mcp.token`。该文件由主后端生成。令牌不会被写入 MCP 工具结果。
+先安装后端依赖并启动 OpsClaw API。默认 API 基址为 `http://127.0.0.1:8100/api/v1/mcp`。适配器从 `OPSWEAVER_MCP_TOKEN` 读取令牌，未设置时读取后端目录的 `data/mcp.token`。该文件由主后端生成。令牌不会被写入 MCP 工具结果。
 
 客户端配置示例，请替换 Python 和脚本的绝对路径：
 
 ```json
 {
   "mcpServers": {
-    "opsweaver": {
+    "opsclaw": {
       "command": "C:\\path\\to\\python.exe",
-      "args": ["C:\\path\\to\\opsweaver\\backend\\opsweaver\\mcp_server.py"]
+      "args": ["C:\\path\\to\\OpsClaw\\backend\\opsweaver\\mcp_server.py"]
     }
   }
 }
@@ -24,10 +24,10 @@ MCP 适配器通过带令牌的本地 HTTP API 访问 OpsWeaver。当前实现�
 ```json
 {
   "mcpServers": {
-    "opsweaver": {
+    "opsclaw": {
       "command": "C:\\path\\to\\python.exe",
       "args": ["-m", "opsweaver.mcp_server"],
-      "cwd": "C:\\path\\to\\opsweaver\\backend"
+      "cwd": "C:\\path\\to\\OpsClaw\\backend"
     }
   }
 }

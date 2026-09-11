@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpsWeaver Local API",
+    "title": "OpsClaw Local API",
     "version": "0.1.0"
   },
   "paths": {

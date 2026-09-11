@@ -37,13 +37,13 @@ def live_backend() -> dict[str, str]:
     if not token:
         path = Path(env.get("OPSWEAVER_MCP_TOKEN_FILE", str(ROOT / "data" / "mcp.token")))
         if not path.exists():
-            pytest.skip("Live backend token missing; start the OpsWeaver API first.")
+            pytest.skip("Live backend token missing; start the OpsClaw API first.")
         token = path.read_text(encoding="utf-8-sig").strip()
     env["OPSWEAVER_MCP_TOKEN"] = token
     try:
         response = httpx.get(f"{api}/summary", headers={"Authorization": f"Bearer {token}"}, timeout=5, trust_env=False)
     except httpx.RequestError:
-        pytest.skip("Live backend unavailable; start the OpsWeaver API first.")
+        pytest.skip("Live backend unavailable; start the OpsClaw API first.")
     assert response.status_code == 200, f"Backend MCP summary returned {response.status_code}"
     return env
 
@@ -54,7 +54,7 @@ async def protocol_roundtrip(env: dict[str, str], cwd: Path) -> None:
     async with stdio_client(parameters) as (read, write):
         async with ClientSession(read, write) as session:
             initialized = await session.initialize()
-            assert initialized.serverInfo.name == "OpsWeaver"
+            assert initialized.serverInfo.name == "OpsClaw"
             listing = await session.list_tools()
             assert {item.name for item in listing.tools} == EXPECTED_TOOLS
             assert all("approve" not in item.name and "execute" not in item.name for item in listing.tools)

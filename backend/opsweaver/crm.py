@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from .store import DATA, now, secret
 
-app = FastAPI(title="OpsWeaver Mock CRM", version="0.1.0")
+app = FastAPI(title="OpsClaw Mock CRM", version="0.1.0")
 DB = DATA / "mock-crm.sqlite3"
 with sqlite3.connect(DB) as db:
     db.execute("CREATE TABLE IF NOT EXISTS tasks(id TEXT PRIMARY KEY, external_ref TEXT UNIQUE NOT NULL, document TEXT NOT NULL)")

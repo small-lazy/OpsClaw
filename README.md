@@ -1,8 +1,8 @@
-# OpsWeaver
+# OpsClaw
 
 **让业务信号成为有据可循的行动。**
 
-OpsWeaver 是面向数据运营场景的 Agent 工作台，将数据查看、缺口检测、证据调查、方案审批与执行跟踪连接起来。通过可视化工作流查看每一步的依据和进展，也可以编写自定义 Skill，通过 MCP 与其他 Agent 协作。
+OpsClaw 是面向数据运营场景的 Agent 工作台，将数据查看、缺口检测、证据调查、方案审批与执行跟踪连接起来。通过可视化工作流查看每一步的依据和进展，也可以编写自定义 Skill，通过 MCP 与其他 Agent 协作。
 
 [核心功能](#核心功能) · [界面预览](#界面预览) · [快速开始](#快速开始) · [Skill 与 MCP](#skill-与-mcp) · [开发](#开发)
 
@@ -70,8 +70,8 @@ OpsWeaver 是面向数据运营场景的 Agent 工作台，将数据查看、缺
 ### 1. 获取源码
 
 ```powershell
-git clone https://github.com/small-lazy/OpsWeaver.git
-cd OpsWeaver
+git clone https://github.com/small-lazy/OpsClaw.git
+cd OpsClaw
 npm install --global pnpm@10
 ```
 
@@ -130,7 +130,7 @@ pnpm start
 
 连接其他 Agent：
 
-1. 启动 OpsWeaver，进入 **Skill 工坊 → MCP 接入**。
+1. 启动 OpsClaw，进入 **Skill 工坊 → MCP 接入**。
 2. 复制页面生成的配置，添加到 Agent 客户端的 MCP 配置中。
 3. 连接后获取 Skill，提交参数并调用授权工具。
 

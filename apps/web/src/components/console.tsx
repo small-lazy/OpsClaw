@@ -150,7 +150,7 @@ function Logo() {
       </div>
       <div>
         <strong>
-          OpsWeaver
+          OpsClaw
         </strong>
         <small>数据运营工作台</small>
       </div>
@@ -205,7 +205,7 @@ function Dialog({
     >
       <div className="modal-head">
         <div>
-          <small>OPSWEAVER / 工作空间</small>
+          <small>OPSCLAW / 工作空间</small>
           <h2>{title}</h2>
         </div>
         <button className="icon-button" onClick={onClose} aria-label="关闭弹窗">
@@ -2291,7 +2291,7 @@ function App() {
           <footer className="footer">
             <span>
               <span className="tiny-brand" />
-              OpsWeaver <span className="version">v0.1</span>
+              OpsClaw <span className="version">v0.1</span>
             </span>
             <span>从业务证据到行动闭环</span>
             <button onClick={() => setStop(true)}>

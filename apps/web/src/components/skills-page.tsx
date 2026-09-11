@@ -188,7 +188,7 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
       JSON.stringify(
         {
           mcpServers: {
-            opsweaver: { command: python, args: mcpArgs, cwd: backend },
+            opsclaw: { command: python, args: mcpArgs, cwd: backend },
           },
         },
         null,
@@ -490,7 +490,7 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
                 <PlugZap size={24} />
               </span>
               <div>
-                <h2>连接 OpsWeaver</h2>
+                <h2>连接 OpsClaw</h2>
                 <p>让支持 MCP 的 Agent 读取证据、发起调查与提交提案。</p>
               </div>
             </div>
@@ -533,7 +533,7 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
                       setBackend(event.target.value);
                       setCopied(false);
                     }}
-                    placeholder="C:\\path\\to\\opsweaver\\backend"
+                    placeholder="C:\\path\\to\\OpsClaw\\backend"
                   />
                 </label>
                 <p>{configSource}</p>
@@ -560,7 +560,7 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
             <div className="skill-mcp-steps">
               <div>
                 <span>1</span>
-                <p>启动并确认 OpsWeaver 后端可用。</p>
+                <p>启动并确认 OpsClaw 后端可用。</p>
               </div>
               <div>
                 <span>2</span>
