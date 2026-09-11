@@ -1,0 +1,757 @@
+{
+  "mode": "SIMULATED",
+  "as_of": "2026-09-10T08:00:00+08:00",
+  "revision": 1,
+  "incidents": [
+    {
+      "id": "inc-C001",
+      "customer": "C001",
+      "segment": "高价值用户",
+      "title": "支付问题待跟进",
+      "kind": "ACTION_MISSING",
+      "priority": 94,
+      "status": "action_planned",
+      "hours": 32,
+      "value": 128600,
+      "consent": true,
+      "support": true,
+      "coverage": true,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥1,286",
+        "最近 15 天没有支付，活跃会话由 12 次降至 3 次",
+        "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。",
+        "发现未关闭售后工单，禁止促销，建议协调售后。"
+      ],
+      "run_id": "run-C001"
+    },
+    {
+      "id": "inc-C018",
+      "customer": "C018",
+      "segment": "新客 · 潜力用户",
+      "title": "高价值用户未跟进",
+      "kind": "ACTION_MISSING",
+      "priority": 91,
+      "status": "open",
+      "hours": 39,
+      "value": 172200,
+      "consent": true,
+      "support": false,
+      "coverage": true,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥1,722",
+        "最近 16 天没有支付，活跃会话由 13 次降至 4 次",
+        "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    },
+    {
+      "id": "inc-C027",
+      "customer": "C027",
+      "segment": "沉睡用户",
+      "title": "跟进任务已超期",
+      "kind": "TASK_OVERDUE",
+      "priority": 87,
+      "status": "open",
+      "hours": 46,
+      "value": 215800,
+      "consent": true,
+      "support": false,
+      "coverage": true,
+      "owner": "客户成功组",
+      "facts": [
+        "近 90 天净支付 ¥2,158",
+        "最近 17 天没有支付，活跃会话由 14 次降至 5 次",
+        "已存在相关跟进任务，当前超期；不能再新建重复任务。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    },
+    {
+      "id": "inc-C042",
+      "customer": "C042",
+      "segment": "活跃用户",
+      "title": "活跃下降，无相关任务",
+      "kind": "ACTION_MISSING",
+      "priority": 84,
+      "status": "open",
+      "hours": 53,
+      "value": 259400,
+      "consent": true,
+      "support": false,
+      "coverage": true,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥2,594",
+        "最近 18 天没有支付，活跃会话由 15 次降至 3 次",
+        "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    },
+    {
+      "id": "inc-C056",
+      "customer": "C056",
+      "segment": "高价值用户",
+      "title": "触达数据覆盖不完整",
+      "kind": "COVERAGE_UNKNOWN",
+      "priority": 80,
+      "status": "blocked",
+      "hours": 60,
+      "value": 303000,
+      "consent": null,
+      "support": false,
+      "coverage": false,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥3,030",
+        "最近 19 天没有支付，活跃会话由 16 次降至 4 次",
+        "触达来源覆盖不完整，无法确认是否无人跟进。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    },
+    {
+      "id": "inc-C063",
+      "customer": "C063",
+      "segment": "新客 · 潜力用户",
+      "title": "高价值用户未跟进",
+      "kind": "ACTION_MISSING",
+      "priority": 77,
+      "status": "action_planned",
+      "hours": 67,
+      "value": 346600,
+      "consent": true,
+      "support": false,
+      "coverage": true,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥3,466",
+        "最近 15 天没有支付，活跃会话由 17 次降至 5 次",
+        "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": "run-C063"
+    },
+    {
+      "id": "inc-C079",
+      "customer": "C079",
+      "segment": "沉睡用户",
+      "title": "售后投诉待协调",
+      "kind": "ACTION_MISSING",
+      "priority": 73,
+      "status": "action_planned",
+      "hours": 74,
+      "value": 390200,
+      "consent": true,
+      "support": true,
+      "coverage": true,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥3,902",
+        "最近 16 天没有支付，活跃会话由 18 次降至 3 次",
+        "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。",
+        "发现未关闭售后工单，禁止促销，建议协调售后。"
+      ],
+      "run_id": "run-C079"
+    },
+    {
+      "id": "inc-C086",
+      "customer": "C086",
+      "segment": "活跃用户",
+      "title": "活跃下降，无相关任务",
+      "kind": "ACTION_MISSING",
+      "priority": 70,
+      "status": "open",
+      "hours": 81,
+      "value": 433800,
+      "consent": true,
+      "support": false,
+      "coverage": true,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥4,338",
+        "最近 17 天没有支付，活跃会话由 19 次降至 4 次",
+        "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    },
+    {
+      "id": "inc-C103",
+      "customer": "C103",
+      "segment": "高价值用户",
+      "title": "高价值用户未跟进",
+      "kind": "ACTION_MISSING",
+      "priority": 66,
+      "status": "open",
+      "hours": 88,
+      "value": 477400,
+      "consent": true,
+      "support": false,
+      "coverage": true,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥4,774",
+        "最近 18 天没有支付，活跃会话由 20 次降至 5 次",
+        "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    },
+    {
+      "id": "inc-C126",
+      "customer": "C126",
+      "segment": "新客 · 潜力用户",
+      "title": "跟进任务已超期",
+      "kind": "TASK_OVERDUE",
+      "priority": 63,
+      "status": "open",
+      "hours": 95,
+      "value": 521000,
+      "consent": true,
+      "support": false,
+      "coverage": true,
+      "owner": "客户成功组",
+      "facts": [
+        "近 90 天净支付 ¥5,210",
+        "最近 19 天没有支付，活跃会话由 21 次降至 3 次",
+        "已存在相关跟进任务，当前超期；不能再新建重复任务。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    },
+    {
+      "id": "inc-C148",
+      "customer": "C148",
+      "segment": "沉睡用户",
+      "title": "高价值用户未跟进",
+      "kind": "ACTION_MISSING",
+      "priority": 59,
+      "status": "open",
+      "hours": 102,
+      "value": 564600,
+      "consent": true,
+      "support": false,
+      "coverage": true,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥5,646",
+        "最近 15 天没有支付，活跃会话由 22 次降至 4 次",
+        "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    },
+    {
+      "id": "inc-C192",
+      "customer": "C192",
+      "segment": "活跃用户",
+      "title": "活跃下降，无相关任务",
+      "kind": "ACTION_MISSING",
+      "priority": 56,
+      "status": "open",
+      "hours": 109,
+      "value": 608200,
+      "consent": true,
+      "support": false,
+      "coverage": true,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥6,082",
+        "最近 16 天没有支付，活跃会话由 23 次降至 5 次",
+        "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    },
+    {
+      "id": "inc-C214",
+      "customer": "C214",
+      "segment": "高价值用户",
+      "title": "来源覆盖待确认",
+      "kind": "COVERAGE_UNKNOWN",
+      "priority": 52,
+      "status": "blocked",
+      "hours": 116,
+      "value": 651800,
+      "consent": true,
+      "support": false,
+      "coverage": false,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥6,518",
+        "最近 17 天没有支付，活跃会话由 24 次降至 3 次",
+        "触达来源覆盖不完整，无法确认是否无人跟进。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    },
+    {
+      "id": "inc-C258",
+      "customer": "C258",
+      "segment": "新客 · 潜力用户",
+      "title": "高价值用户未跟进",
+      "kind": "ACTION_MISSING",
+      "priority": 49,
+      "status": "open",
+      "hours": 123,
+      "value": 695400,
+      "consent": true,
+      "support": false,
+      "coverage": true,
+      "owner": "待分配",
+      "facts": [
+        "近 90 天净支付 ¥6,954",
+        "最近 18 天没有支付，活跃会话由 25 次降至 4 次",
+        "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。",
+        "未发现未关闭售后工单。"
+      ],
+      "run_id": null
+    }
+  ],
+  "runs": [
+    {
+      "id": "run-C001",
+      "incident_id": "inc-C001",
+      "customer": "C001",
+      "title": "客户支付与售后调查",
+      "state": "waiting_approval",
+      "started_at": "2026-09-10T07:22:00+08:00",
+      "model_calls": 0,
+      "tool_calls": 3,
+      "events": [
+        {
+          "id": "1",
+          "node": "detect",
+          "title": "确认行动缺口",
+          "detail": "最近 15 天没有支付，活跃会话由 12 次降至 3 次",
+          "at": "07:22:01",
+          "status": "completed",
+          "tool": "metrics.evaluate"
+        },
+        {
+          "id": "2",
+          "node": "investigate",
+          "title": "核查 CRM 与工单",
+          "detail": "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。 发现未关闭售后工单，禁止促销，建议协调售后。",
+          "at": "07:22:02",
+          "status": "completed",
+          "tool": "crm.lookup"
+        },
+        {
+          "id": "3",
+          "node": "plan",
+          "title": "生成可审查方案",
+          "detail": "优先建立售后协调任务，不发送促销。",
+          "at": "07:22:03",
+          "status": "completed",
+          "tool": "policy.check"
+        },
+        {
+          "id": "4",
+          "node": "approve",
+          "title": "等待人工审批",
+          "detail": "方案已固定版本和作用对象。审批后将写入 任务中心。",
+          "at": "07:22:04",
+          "status": "waiting_approval"
+        }
+      ]
+    },
+    {
+      "id": "run-C063",
+      "incident_id": "inc-C063",
+      "customer": "C063",
+      "title": "高价值用户跟进调查",
+      "state": "waiting_approval",
+      "started_at": "2026-09-10T06:22:00+08:00",
+      "model_calls": 0,
+      "tool_calls": 3,
+      "events": [
+        {
+          "id": "1",
+          "node": "detect",
+          "title": "确认行动缺口",
+          "detail": "最近 15 天没有支付，活跃会话由 17 次降至 5 次",
+          "at": "07:22:01",
+          "status": "completed",
+          "tool": "metrics.evaluate"
+        },
+        {
+          "id": "2",
+          "node": "investigate",
+          "title": "核查 CRM 与工单",
+          "detail": "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。 未发现未关闭售后工单。",
+          "at": "07:22:02",
+          "status": "completed",
+          "tool": "crm.lookup"
+        },
+        {
+          "id": "3",
+          "node": "plan",
+          "title": "生成可审查方案",
+          "detail": "建立普通人工跟进任务，暂不发放优惠券。",
+          "at": "07:22:03",
+          "status": "completed",
+          "tool": "policy.check"
+        },
+        {
+          "id": "4",
+          "node": "approve",
+          "title": "等待人工审批",
+          "detail": "方案已固定版本和作用对象。审批后将写入 任务中心。",
+          "at": "07:22:04",
+          "status": "waiting_approval"
+        }
+      ]
+    },
+    {
+      "id": "run-C079",
+      "incident_id": "inc-C079",
+      "customer": "C079",
+      "title": "客户支付与售后调查",
+      "state": "waiting_approval",
+      "started_at": "2026-09-10T05:22:00+08:00",
+      "model_calls": 0,
+      "tool_calls": 3,
+      "events": [
+        {
+          "id": "1",
+          "node": "detect",
+          "title": "确认行动缺口",
+          "detail": "最近 16 天没有支付，活跃会话由 18 次降至 3 次",
+          "at": "07:22:01",
+          "status": "completed",
+          "tool": "metrics.evaluate"
+        },
+        {
+          "id": "2",
+          "node": "investigate",
+          "title": "核查 CRM 与工单",
+          "detail": "已接入且覆盖确认的 CRM 范围内，72 小时未发现相关成功触达。 发现未关闭售后工单，禁止促销，建议协调售后。",
+          "at": "07:22:02",
+          "status": "completed",
+          "tool": "crm.lookup"
+        },
+        {
+          "id": "3",
+          "node": "plan",
+          "title": "生成可审查方案",
+          "detail": "优先建立售后协调任务，不发送促销。",
+          "at": "07:22:03",
+          "status": "completed",
+          "tool": "policy.check"
+        },
+        {
+          "id": "4",
+          "node": "approve",
+          "title": "等待人工审批",
+          "detail": "方案已固定版本和作用对象。审批后将写入 任务中心。",
+          "at": "07:22:04",
+          "status": "waiting_approval"
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan-C001",
+      "incident_id": "inc-C001",
+      "run_id": "run-C001",
+      "customer": "C001",
+      "title": "C001 · 售后协调任务",
+      "purpose": "support_followup",
+      "owner": "售后支持组",
+      "status": "pending",
+      "version": 1,
+      "hash": "sha256:demo-C001-v1",
+      "budget": 0,
+      "expires_at": "2026-09-11T08:00:00+08:00",
+      "reason": "发现未关闭售后工单，禁止促销，建议协调售后。",
+      "checks": [
+        "来源覆盖与时效已确认",
+        "客户与行动范围已固定",
+        "未发现相关进行中任务",
+        "仅允许创建人工任务，不发送营销"
+      ]
+    },
+    {
+      "id": "plan-C063",
+      "incident_id": "inc-C063",
+      "run_id": "run-C063",
+      "customer": "C063",
+      "title": "C063 · 高价值用户跟进计划",
+      "purpose": "retention_followup",
+      "owner": "客户成功组",
+      "status": "pending",
+      "version": 1,
+      "hash": "sha256:demo-C063-v1",
+      "budget": 0,
+      "expires_at": "2026-09-11T08:00:00+08:00",
+      "reason": "未发现未关闭售后工单。",
+      "checks": [
+        "来源覆盖与时效已确认",
+        "客户与行动范围已固定",
+        "未发现相关进行中任务",
+        "仅允许创建人工任务，不发送营销"
+      ]
+    },
+    {
+      "id": "plan-C079",
+      "incident_id": "inc-C079",
+      "run_id": "run-C079",
+      "customer": "C079",
+      "title": "C079 · 售后协调任务",
+      "purpose": "support_followup",
+      "owner": "售后支持组",
+      "status": "pending",
+      "version": 1,
+      "hash": "sha256:demo-C079-v1",
+      "budget": 0,
+      "expires_at": "2026-09-11T08:00:00+08:00",
+      "reason": "发现未关闭售后工单，禁止促销，建议协调售后。",
+      "checks": [
+        "来源覆盖与时效已确认",
+        "客户与行动范围已固定",
+        "未发现相关进行中任务",
+        "仅允许创建人工任务，不发送营销"
+      ]
+    }
+  ],
+  "actions": [],
+  "sources": [
+    {
+      "id": "src-customers",
+      "role": "customers",
+      "name": "客户主数据",
+      "rows": 500,
+      "status": "ready",
+      "coverage": true,
+      "as_of": "2026-09-10T08:00:00+08:00",
+      "columns": [
+        "customer_id",
+        "status",
+        "updated_at"
+      ]
+    },
+    {
+      "id": "src-orders",
+      "role": "orders",
+      "name": "交易订单",
+      "rows": 1800,
+      "status": "ready",
+      "coverage": true,
+      "as_of": "2026-09-10T08:00:00+08:00",
+      "columns": [
+        "customer_id",
+        "paid_amount_minor",
+        "updated_at"
+      ]
+    },
+    {
+      "id": "src-events",
+      "role": "events",
+      "name": "行为事件",
+      "rows": 5000,
+      "status": "ready",
+      "coverage": true,
+      "as_of": "2026-09-10T08:00:00+08:00",
+      "columns": [
+        "customer_id",
+        "status",
+        "updated_at"
+      ]
+    },
+    {
+      "id": "src-contacts",
+      "role": "contacts",
+      "name": "触达记录",
+      "rows": 386,
+      "status": "ready",
+      "coverage": true,
+      "as_of": "2026-09-10T08:00:00+08:00",
+      "columns": [
+        "customer_id",
+        "status",
+        "updated_at"
+      ]
+    },
+    {
+      "id": "src-crm_tasks",
+      "role": "crm_tasks",
+      "name": "CRM 跟进任务",
+      "rows": 128,
+      "status": "ready",
+      "coverage": true,
+      "as_of": "2026-09-10T08:00:00+08:00",
+      "columns": [
+        "customer_id",
+        "status",
+        "updated_at"
+      ]
+    },
+    {
+      "id": "src-support_tickets",
+      "role": "support_tickets",
+      "name": "售后工单",
+      "rows": 42,
+      "status": "ready",
+      "coverage": true,
+      "as_of": "2026-09-10T08:00:00+08:00",
+      "columns": [
+        "customer_id",
+        "status",
+        "updated_at"
+      ]
+    }
+  ],
+  "trend": [
+    {
+      "date": "09/04",
+      "detected": 21,
+      "covered": 8
+    },
+    {
+      "date": "09/05",
+      "detected": 23,
+      "covered": 8
+    },
+    {
+      "date": "09/06",
+      "detected": 30,
+      "covered": 13
+    },
+    {
+      "date": "09/07",
+      "detected": 31,
+      "covered": 18
+    },
+    {
+      "date": "09/08",
+      "detected": 25,
+      "covered": 19
+    },
+    {
+      "date": "09/09",
+      "detected": 26,
+      "covered": 16
+    },
+    {
+      "date": "09/10",
+      "detected": 33,
+      "covered": 24
+    }
+  ],
+  "coverage": {
+    "numerator": 19,
+    "denominator": 22,
+    "previous": 0.782
+  },
+  "agents": [
+    {
+      "id": "retention",
+      "name": "高价值用户跟进 Agent",
+      "description": "识别行动缺口，调查售后与触达证据，生成受控跟进方案。",
+      "status": "active",
+      "version": "1.0.0",
+      "tools": [
+        "metrics.evaluate",
+        "crm.lookup",
+        "support.lookup",
+        "create_crm_task"
+      ],
+      "runs": 3
+    }
+  ],
+  "experiments": [
+    {
+      "id": "exp-001",
+      "name": "低活跃高价值用户 · 人工跟进观察",
+      "status": "observing",
+      "treatment_n": 64,
+      "control_n": 64,
+      "treatment_success": 9,
+      "control_success": 7,
+      "target_n": 420,
+      "mature": false,
+      "days_elapsed": 3,
+      "window_days": 7
+    }
+  ],
+  "memories": [
+    {
+      "id": "mem-1",
+      "title": "支付障碍优先转交售后",
+      "status": "active",
+      "grade": "operational_fact",
+      "summary": "存在未关闭支付工单时，建立售后协调任务，待问题处理后重新评估挽回资格。任务回读已验证，业务收益尚未验证。",
+      "tags": [
+        "支付问题",
+        "售后优先",
+        "内置业务数据"
+      ],
+      "sample_size": 8,
+      "updated_at": "2026-09-09"
+    },
+    {
+      "id": "mem-2",
+      "title": "已有相关任务时避免重复跟进",
+      "status": "draft",
+      "grade": "operational_fact",
+      "summary": "客户已有进行中任务时，保留原负责人；若任务超期，提出升级处理方案。",
+      "tags": [
+        "去重",
+        "任务超期"
+      ],
+      "sample_size": 12,
+      "updated_at": "2026-09-10"
+    },
+    {
+      "id": "mem-3",
+      "title": "活跃下降不等于需要促销",
+      "status": "draft",
+      "grade": "observational",
+      "summary": "当前内置样本显示多种活跃下降原因，需要先查工单和近期触达。观察关联不构成因果证据。",
+      "tags": [
+        "证据不足",
+        "内置数据观察"
+      ],
+      "sample_size": 32,
+      "updated_at": "2026-09-10"
+    }
+  ],
+  "settings": {
+    "kill_switch": false,
+    "daily_limit": 30,
+    "workspace_name": "电商运营工作区"
+  },
+  "skills": [
+    {
+      "id": "skill-retention",
+      "name": "高价值用户调查助手",
+      "description": "在完整证据范围内调查客户跟进缺口，向外部 Agent 返回可审查的事实与提案。",
+      "version": "1.0.0",
+      "status": "active",
+      "instructions": "# 任务目标\n核查指定客户的行动缺口。\n\n## 工作步骤\n1. 使用 get_incident 读取客户案例。\n2. 区分已确认事实与来源限制。\n3. 有未关闭售后工单时优先建议售后任务。\n4. 不自动执行或批准，返回证据与待审建议。",
+      "input_schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"customer_id\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"customer_id\"\n  ],\n  \"additionalProperties\": false\n}",
+      "tools": [
+        "console_summary",
+        "list_incidents",
+        "get_incident",
+        "investigate",
+        "request_plan"
+      ],
+      "updated_at": "2026-09-10"
+    }
+  ],
+  "audit": [
+    {
+      "id": "audit-seed",
+      "operation": "载入业务快照",
+      "detail": "固定内置业务数据，seed=20260910；预置案例不是实时模型运行。",
+      "at": "2026-09-10T08:00:00+08:00"
+    }
+  ]
+}

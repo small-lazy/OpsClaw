@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "opsweaver": {
+      "command": "C:/path/to/opsweaver/backend/.venv/Scripts/python.exe",
+      "args": ["C:/path/to/opsweaver/backend/opsweaver/mcp_server.py"],
+      "cwd": "C:/path/to/opsweaver/backend"
+    }
+  }
+}

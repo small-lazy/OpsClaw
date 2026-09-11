@@ -1,0 +1,144 @@
+export type Incident = {
+  id: string;
+  customer: string;
+  segment: string;
+  title: string;
+  kind: string;
+  priority: number;
+  status: string;
+  hours: number;
+  value: number;
+  consent: boolean | null;
+  support: boolean;
+  coverage: boolean;
+  owner: string;
+  facts: string[];
+  run_id: string | null;
+};
+export type RunEvent = {
+  id: string;
+  node: string;
+  title: string;
+  detail: string;
+  at: string;
+  status: string;
+  tool?: string;
+};
+export type Run = {
+  id: string;
+  incident_id: string;
+  customer: string;
+  title: string;
+  state: string;
+  started_at: string;
+  model_calls: number;
+  tool_calls: number;
+  events: RunEvent[];
+};
+export type Plan = {
+  id: string;
+  incident_id: string;
+  run_id: string;
+  customer: string;
+  title: string;
+  purpose: string;
+  owner: string;
+  status: string;
+  version: number;
+  hash: string;
+  budget: number;
+  expires_at: string;
+  reason: string;
+  checks: string[];
+};
+export type Action = {
+  id: string;
+  customer: string;
+  title: string;
+  status: string;
+  external_id: string;
+  idempotency_key: string;
+  verified_at: string;
+  due_at: string;
+  plan_id: string;
+  owner: string;
+};
+export type Source = {
+  id: string;
+  role: string;
+  name: string;
+  rows: number;
+  status: string;
+  coverage: boolean;
+  as_of: string;
+  columns?: string[];
+  preview?: Record<string, string>[];
+  mapping?: Record<string, string>;
+};
+export type ConsoleData = {
+  mode: string;
+  as_of: string;
+  revision: number;
+  incidents: Incident[];
+  runs: Run[];
+  plans: Plan[];
+  actions: Action[];
+  sources: Source[];
+  trend: { date: string; detected: number; covered: number }[];
+  coverage: { numerator: number; denominator: number; previous: number; previous_denominator?: number };
+  agents: {
+    id: string;
+    name: string;
+    description: string;
+    status: string;
+    version: string;
+    tools: string[];
+    runs: number;
+  }[];
+  experiments: {
+    id: string;
+    name: string;
+    status: string;
+    treatment_n: number;
+    control_n: number;
+    treatment_success: number;
+    control_success: number;
+    target_n: number;
+    mature: boolean;
+    days_elapsed: number;
+    window_days: number;
+  }[];
+  memories: {
+    id: string;
+    title: string;
+    status: string;
+    grade: string;
+    summary: string;
+    tags: string[];
+    sample_size: number;
+    updated_at: string;
+  }[];
+  settings: {
+    kill_switch: boolean;
+    daily_limit: number;
+    workspace_name: string;
+  };
+  skills: {
+    id: string;
+    name: string;
+    description: string;
+    version: string;
+    status: string;
+    instructions: string;
+    input_schema: string;
+    tools: string[];
+    updated_at: string;
+  }[];
+  audit: { id: string; operation: string; detail: string; at: string }[];
+};
+export type PageProps = {
+  data: ConsoleData;
+  mutate: (action: string, payload?: Record<string, unknown>) => Promise<any>;
+  notify: (message: string) => void;
+  go: (path: string) => void;
+};

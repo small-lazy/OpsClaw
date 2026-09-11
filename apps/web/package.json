@@ -1,0 +1,6 @@
+{
+  "name": "opsweaver-web", "version": "0.1.0", "private": true,
+  "scripts": {"dev": "next dev --hostname 127.0.0.1 --port 3100", "build": "next build", "start": "next start --hostname 127.0.0.1 --port 3100", "typecheck": "tsc --noEmit"},
+  "dependencies": {"next": "^16.0.0", "react": "^19.2.0", "react-dom": "^19.2.0", "lucide-react": "^0.468.0", "@tanstack/react-query": "^5.90.0", "@tanstack/react-table": "^8.21.0", "echarts": "^6.0.0", "@xyflow/react": "^12.9.0", "zod": "^4.0.0", "react-hook-form": "^7.62.0"},
+  "devDependencies": {"typescript": "^5.9.0", "@types/node": "^22.0.0", "@types/react": "^19.0.0", "@types/react-dom": "^19.0.0", "@playwright/test": "^1.55.0", "openapi-typescript": "^7.9.0", "tailwindcss": "^4.1.0", "@tailwindcss/postcss": "^4.1.0"}
+}
