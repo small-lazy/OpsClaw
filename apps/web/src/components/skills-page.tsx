@@ -144,7 +144,11 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
   const transport = "stdio";
   const [mcpArgs, setMcpArgs] = useState<string[]>([]);
   const [configSource, setConfigSource] = useState("正在读取当前安装的 MCP 配置…");
-  const [copied, setCopied] = useState(false);
+  const [copiedConfig, setCopiedConfig] = useState<string | null>(null);
+  const [configAttempt, setConfigAttempt] = useState(0);
+  const [configLoading, setConfigLoading] = useState(true);
+  const [configError, setConfigError] = useState(false);
+  const configReady = Boolean(python.trim() && backend.trim() && mcpArgs.length && !configLoading && !configError);
   useModalFocus(Boolean(draft || selected), () => {
     if (!busy) {
       setDraft(null);
@@ -156,11 +160,16 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
     (item) =>
       `${item.name} ${item.description} ${item.tools.join(" ")}`
         .toLowerCase()
-        .includes(query.toLowerCase()) &&
-      (filter === "all" || item.status === filter),
+        .includes(query.trim().toLowerCase()) &&
+      (filter === "all" || item.status === filter ||
+        (filter === "disabled" && ["paused", "inactive"].includes(item.status))),
   );
   useEffect(() => {
     const controller = new AbortController();
+    setConfigLoading(true);
+    setConfigError(false);
+    setCopiedConfig(null);
+    setConfigSource("正在读取当前安装的 MCP 配置…");
     void fetch("/api/v1/mcp-config", { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error("MCP 配置读取失败");
@@ -168,27 +177,36 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
         const value = result.data;
         if (
           value?.transport === "stdio" &&
-          typeof value.command === "string" &&
-          Array.isArray(value.args) &&
+          typeof value.command === "string" && value.command.trim() &&
+          typeof value.cwd === "string" && value.cwd.trim() &&
+          Array.isArray(value.args) && value.args.length > 0 &&
           value.args.every((item: unknown) => typeof item === "string")
         ) {
           setPython(value.command);
           setMcpArgs(value.args);
           if (typeof value.cwd === "string") setBackend(value.cwd);
-          setConfigSource("已自动读取本机 MCP 配置，可直接复制到客户端。");
+          setConfigSource("已读取 MCP 配置，可调整路径后复制到客户端。");
+        } else {
+          throw new Error("MCP 配置不完整");
         }
       })
       .catch(() => {
-        if (!controller.signal.aborted) setConfigSource("MCP 配置读取失败，请刷新页面重试。");
+        if (!controller.signal.aborted) {
+          setConfigError(true);
+          setConfigSource("MCP 配置读取失败，请重试。");
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setConfigLoading(false);
       });
     return () => controller.abort();
-  }, []);
+  }, [configAttempt]);
   const config = useMemo(
     () =>
       JSON.stringify(
         {
           mcpServers: {
-            opsclaw: { command: python, args: mcpArgs, cwd: backend },
+            opsclaw: { command: python.trim(), args: mcpArgs, cwd: backend.trim() },
           },
         },
         null,
@@ -308,10 +326,11 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
     }
   }
   async function copy() {
+    if (!configReady) return;
     try {
       JSON.parse(config);
       await navigator.clipboard.writeText(config);
-      setCopied(true);
+      setCopiedConfig(config);
       notify("MCP 配置已复制");
     } catch {
       notify("无法直接复制，请选择配置文本手动复制。");
@@ -383,6 +402,7 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
                 ["all", "全部"],
                 ["active", "已启用"],
                 ["draft", "草稿"],
+                ["disabled", "已停用"],
               ].map(([value, name]) => (
                 <button
                   key={value}
@@ -497,7 +517,7 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
             <div className="skill-transport">
               <button
                 className={transport === "stdio" ? "active" : ""}
-                onClick={() => setCopied(false)}
+                onClick={() => setCopiedConfig(null)}
               >
                 <Terminal size={16} />
                 stdio<span>推荐</span>
@@ -517,9 +537,10 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
                   <input
                     className="field"
                     value={python}
+                    disabled={configLoading || configError}
                     onChange={(event) => {
                       setPython(event.target.value);
-                      setCopied(false);
+                      setCopiedConfig(null);
                     }}
                     placeholder="C:\\path\\to\\python.exe"
                   />
@@ -529,14 +550,19 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
                   <input
                     className="field"
                     value={backend}
+                    disabled={configLoading || configError}
                     onChange={(event) => {
                       setBackend(event.target.value);
-                      setCopied(false);
+                      setMcpArgs(["-m", "opsweaver.mcp_server"]);
+                      setCopiedConfig(null);
                     }}
                     placeholder="C:\\path\\to\\OpsClaw\\backend"
                   />
                 </label>
-                <p>{configSource}</p>
+                <p role="status">{configSource}</p>
+                <button className="skill-text-button" disabled={configLoading} onClick={() => setConfigAttempt((value) => value + 1)}>
+                  {configLoading ? "正在读取…" : configError ? "重新读取配置" : "恢复安装路径"}
+                </button>
               </div>
             ) : (
               <div className="skill-callout">
@@ -551,12 +577,12 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
                 <Braces size={15} />
                 MCP 客户端配置
               </span>
-              <button disabled={!python || !mcpArgs.length} onClick={() => void copy()} className="skill-text-button">
-                {copied ? <Check size={14} /> : <Copy size={14} />}
-                {copied ? "已复制" : "复制配置"}
+              <button disabled={!configReady} onClick={() => void copy()} className="skill-text-button">
+                {copiedConfig === config ? <Check size={14} /> : <Copy size={14} />}
+                {copiedConfig === config ? "已复制" : "复制配置"}
               </button>
             </div>
-            <pre className="skill-code">{python && mcpArgs.length ? config : configSource}</pre>
+            <pre className="skill-code">{configReady ? config : configLoading || configError ? configSource : "请填写 Python 可执行文件和后端工作目录。"}</pre>
             <div className="skill-mcp-steps">
               <div>
                 <span>1</span>
@@ -823,7 +849,7 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
       )}
 
       {chosen && (
-        <div className="skill-overlay" onClick={() => setSelected(null)}>
+        <div className="skill-overlay" onClick={() => { if (!busy) setSelected(null); }}>
           <section
             className="skill-detail"
             role="dialog"
@@ -836,6 +862,7 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
               <button
                 className="skill-close"
                 aria-label="关闭 Skill 详情"
+                disabled={busy}
                 onClick={() => setSelected(null)}
               >
                 <X size={20} />
@@ -858,7 +885,7 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
               </div>
             </div>
             <div className="skill-detail-actions">
-              <button className="button" onClick={() => edit(chosen)}>
+              <button className="button" disabled={busy} onClick={() => edit(chosen)}>
                 <Pencil size={14} />
                 编辑
               </button>
@@ -916,10 +943,14 @@ export function SkillsPage({ data, mutate, notify }: PageProps) {
               </p>
               <textarea
                 aria-label="Skill 测试参数"
+                disabled={busy}
                 className="skill-code-input skill-test-input"
                 spellCheck={false}
                 value={testArgs}
-                onChange={(event) => setTestArgs(event.target.value)}
+                onChange={(event) => {
+                  setTestArgs(event.target.value);
+                  setTestResult(null);
+                }}
               />
               <button
                 disabled={busy}
