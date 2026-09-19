@@ -87,6 +87,32 @@ test("incident search is reflected in URL, no match is explicit", async ({
   await expect(page.getByText("没有符合条件的缺口")).toBeVisible();
 });
 
+test("global search finds workspace records and explains empty results", async ({
+  page,
+}) => {
+  await page.goto("/overview");
+  const state = (await (await page.request.get("/api/v1/console")).json()).data;
+  const incident = state.incidents[0];
+  const skill = state.skills[0];
+  await page.getByLabel("全局搜索").click();
+  const search = page.getByLabel("全局搜索内容");
+  await search.fill(incident.customer);
+  await expect(page.locator(".search-result-copy").first()).toContainText(
+    incident.customer,
+  );
+  await expect(page.locator(".search-results-head")).toContainText(/找到 \d+ 项/);
+  await search.fill(skill.name);
+  const skillResult = page
+    .locator(".search-results button")
+    .filter({ hasText: skill.name });
+  await expect(skillResult).toContainText("Skills");
+  await skillResult.click();
+  await expect(page).toHaveURL(/\/skills$/);
+  await page.getByLabel("全局搜索").click();
+  await page.getByLabel("全局搜索内容").fill("不存在的工作区内容-92831");
+  await expect(page.getByText("没有找到相关内容")).toBeVisible();
+});
+
 test("mobile navigation and all principal surfaces have no page overflow", async ({
   page,
 }) => {

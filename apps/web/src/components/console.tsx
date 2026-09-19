@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -1980,6 +1981,7 @@ function App() {
       router.push(p);
       setMobile(false);
       setSearch(false);
+      setSearchQuery("");
     },
     [router],
   );
@@ -1993,12 +1995,13 @@ function App() {
     const listener = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setSearch((s) => !s);
+        if (search) setSearchQuery("");
+        setSearch(!search);
       }
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, []);
+  }, [search]);
   const q = useQuery({
     queryKey: ["console"],
     queryFn: async () => {
@@ -2014,6 +2017,86 @@ function App() {
   });
   const data = q.data || seed;
   const connected = !!q.data;
+  const normalizedSearch = searchQuery.trim().toLocaleLowerCase("zh-CN");
+  const searchResults = useMemo(() => {
+    type SearchItem = {
+      group: string;
+      label: string;
+      detail: string;
+      url: string;
+      icon: typeof Search;
+      search: string;
+    };
+    const items: SearchItem[] = [];
+    for (const page of navGroups.flatMap((group) => group.items)) {
+      items.push({
+        group: "页面",
+        label: page.label,
+        detail: "打开工作区页面",
+        url: page.url,
+        icon: page.icon,
+        search: `${page.label} ${page.url}`,
+      });
+    }
+    for (const incident of data.incidents) {
+      items.push({
+        group: "行动缺口",
+        label: `${incident.customer} · ${incident.title}`,
+        detail: `${incident.segment} · ${stateLabels[incident.status] || incident.status}`,
+        url: `/incidents/${incident.id}`,
+        icon: ClipboardList,
+        search: `${incident.id} ${incident.customer} ${incident.title} ${incident.segment} ${incident.kind} ${incident.owner}`,
+      });
+    }
+    for (const run of data.runs) {
+      items.push({
+        group: "Agent 运行",
+        label: `${run.customer} · ${run.title}`,
+        detail: `${run.id} · ${stateLabels[run.state] || run.state}`,
+        url: `/runs/${run.id}`,
+        icon: Bot,
+        search: `${run.id} ${run.customer} ${run.title} ${run.state}`,
+      });
+    }
+    for (const plan of data.plans) {
+      items.push({
+        group: "审批方案",
+        label: plan.title,
+        detail: `${plan.customer} · ${stateLabels[plan.status] || plan.status}`,
+        url: `/approvals?plan=${plan.id}`,
+        icon: FileCheck2,
+        search: `${plan.id} ${plan.customer} ${plan.title} ${plan.purpose} ${plan.owner} ${plan.status}`,
+      });
+    }
+    for (const action of data.actions) {
+      items.push({
+        group: "执行记录",
+        label: action.title,
+        detail: `${action.customer} · ${stateLabels[action.status] || action.status}`,
+        url: "/actions",
+        icon: CheckCheck,
+        search: `${action.id} ${action.customer} ${action.title} ${action.owner} ${action.external_id} ${action.status}`,
+      });
+    }
+    for (const skill of data.skills) {
+      items.push({
+        group: "Skills",
+        label: skill.name,
+        detail: `${skill.version} · ${stateLabels[skill.status] || skill.status}`,
+        url: "/skills",
+        icon: Sparkles,
+        search: `${skill.id} ${skill.name} ${skill.description} ${skill.tools.join(" ")} ${skill.status}`,
+      });
+    }
+    return items.filter(
+      (item) =>
+        (!normalizedSearch && item.group === "页面") ||
+        (normalizedSearch &&
+          `${item.label} ${item.detail} ${item.search}`
+            .toLocaleLowerCase("zh-CN")
+            .includes(normalizedSearch)),
+    );
+  }, [data, normalizedSearch]);
   useEffect(() => {
     if (!connected) return;
     const stream = new EventSource("/api/v1/events");
@@ -2317,42 +2400,53 @@ function App() {
         </div>
       )}
       {search && (
-        <Dialog title="搜索工作区" onClose={() => setSearch(false)}>
+        <Dialog
+          title="搜索工作区"
+          onClose={() => {
+            setSearch(false);
+            setSearchQuery("");
+          }}
+        >
           <label className="search-field big-search">
             <Search size={20} />
             <input
               autoFocus
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索客户、案件或页面"
+              placeholder="搜索客户、运行、审批、Skill 或页面"
               aria-label="全局搜索内容"
             />
           </label>
           <div className="search-results">
-            {navGroups
-              .flatMap((g) => g.items)
-              .filter((n) => n.label.includes(searchQuery))
-              .map((n) => (
-                <button key={n.url} onClick={() => go(n.url)}>
-                  <n.icon size={18} />
-                  {n.label}
+            <div className="search-results-head">
+              <span>{normalizedSearch ? `找到 ${searchResults.length} 项` : "快速打开"}</span>
+              <kbd>Esc</kbd>
+            </div>
+            {searchResults.slice(0, 12).map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={`${item.group}-${item.search}`}
+                  onClick={() => go(item.url)}
+                >
+                  <span className="search-result-icon">
+                    <Icon size={17} />
+                  </span>
+                  <span className="search-result-copy">
+                    <strong>{item.label}</strong>
+                    <small>{item.group} · {item.detail}</small>
+                  </span>
                   <ArrowUpRight size={15} />
                 </button>
-              ))}
-            {data.incidents
-              .filter((i) =>
-                `${i.customer} ${i.title}`
-                  .toLowerCase()
-                  .includes(searchQuery.toLowerCase()),
-              )
-              .slice(0, 6)
-              .map((i) => (
-                <button key={i.id} onClick={() => go(`/incidents/${i.id}`)}>
-                  <ClipboardList size={18} />
-                  {i.customer} · {i.title}
-                  <ArrowUpRight size={15} />
-                </button>
-              ))}
+              );
+            })}
+            {normalizedSearch && searchResults.length === 0 && (
+              <div className="search-empty">
+                <Search size={22} />
+                <strong>没有找到相关内容</strong>
+                <span>换一个客户编号、名称或状态试试。</span>
+              </div>
+            )}
           </div>
         </Dialog>
       )}
