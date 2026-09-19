@@ -5,66 +5,64 @@ import { resolve } from 'node:path';
 
 test.use({ trace: 'off' });
 
-test('CSV 接入完成字段确认，并在刷新后保留来源与映射', async ({ page }) => {
-  const login = await page.request.post('/api/v1/workspace/session');
-  expect(login.ok()).toBeTruthy();
-  const filename = `订单接入验证-${Date.now()}.csv`;
-  const csv = [
-    'order_id,customer_id,paid_at,paid_amount_minor,refunded_amount_minor',
-    'IMPORT-DEMO-001,C001,2026-09-09T08:00:00Z,12800,0',
-    'IMPORT-DEMO-002,C002,2026-09-09T09:00:00Z,25600,1200',
-  ].join('\n');
-
-  await page.goto('/onboarding');
-  await expect(page.getByRole('heading', { name: '选择需要接入的数据' })).toBeVisible();
-  await expect(page.getByLabel('标准业务表')).toHaveValue('orders');
-  await page.locator('input[type="file"]').setInputFiles({
-    name: filename, mimeType: 'text/csv', buffer: Buffer.from(csv, 'utf-8'),
+test('批量文件独立导入、失败重试与分析结果刷新后保留', async ({ page }) => {
+  expect((await page.request.post('/api/v1/workspace/session')).ok()).toBeTruthy();
+  const suffix = Date.now();
+  const filename = `销售指标-${suffix}.csv`;
+  const retryName = `区域数据-${suffix}.tsv`;
+  const badName = `损坏文件-${suffix}.json`;
+  let rejected = false;
+  await page.route('**/api/v1/imports', async route => {
+    if (!rejected && route.request().postDataBuffer()?.includes(Buffer.from(retryName))) {
+      rejected = true;
+      await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { message: '临时不可用，请重试' } }) });
+    } else await route.continue();
   });
-  await expect(page.getByRole('button', { name: new RegExp(filename.replace('.', '\\.')) })).toBeVisible();
-  const uploadResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/commands/upload') && response.request().method() === 'POST');
-  await page.getByRole('button', { name: '保存并继续', exact: true }).click();
-  const uploaded = await uploadResponse;
-  expect(uploaded.ok()).toBeTruthy();
-  const sourceId = (await uploaded.json()).data.source_id;
-  expect(sourceId).toBeTruthy();
-  await expect(page.getByRole('heading', { name: '让字段与业务含义对齐' })).toBeVisible();
-  for (const field of ['order_id', 'customer_id', 'paid_at', 'paid_amount_minor', 'refunded_amount_minor']) {
-    const mappingRow = page.locator('label').filter({ has: page.locator('code').filter({ hasText: new RegExp(`^${field}$`) }) });
-    await expect(mappingRow.getByRole('combobox')).toHaveValue(field);
-  }
-  await page.getByLabel('金额单位').selectOption('minor');
-  await page.getByLabel('来源时区').selectOption('Asia/Shanghai');
-  await page.getByRole('checkbox', { name: /我确认该来源/ }).check();
-  const mappingResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/commands/mapping') && response.request().method() === 'POST');
-  await page.getByRole('button', { name: '保存并继续', exact: true }).click();
-  expect((await mappingResponse).ok()).toBeTruthy();
-  await expect(page.getByRole('heading', { name: '你希望 Agent 关注什么？' })).toBeVisible();
-  await page.getByLabel('运营目标', { exact: true }).fill('核验订单接入与映射预览，减少高价值用户跟进遗漏');
-  await page.getByRole('button', { name: '保存并继续', exact: true }).click();
-  await expect(page.getByRole('heading', { name: '检查并启用工作流' })).toBeVisible();
-  await page.getByRole('checkbox', { name: /确认以上目标与工具权限/ }).check();
-  const activateResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/commands/activate') && response.request().method() === 'POST');
-  await page.getByRole('button', { name: '编译并激活', exact: true }).click();
-  expect((await activateResponse).ok()).toBeTruthy();
-  await expect(page.getByRole('heading', { name: '数据接入配置已保存' })).toBeVisible();
-  await expect(page.getByText(/当前分析使用内置业务数据集/)).toBeVisible();
-
-  await page.goto('/data');
-  await page.getByRole('textbox', { name: '搜索数据源' }).fill(filename);
-  const row = page.getByRole('row').filter({ hasText: filename });
-  await expect(row).toHaveCount(1);
-  await row.getByRole('button', { name: '查看详情' }).click();
-  await expect(page.getByRole('dialog', { name: '数据源详情' })).toContainText('来源声明覆盖完整');
-  await expect(page.getByRole('dialog', { name: '数据源详情' })).toContainText('IMPORT-DEMO-001');
+  await page.goto('/onboarding');
+  await expect(page.getByRole('heading', { name: '导入与分析', exact: true })).toBeVisible();
+  await page.getByLabel('选择导入文件').setInputFiles([
+    { name: filename, mimeType: 'text/csv', buffer: Buffer.from('地区,销售额,备注\n华东,100,首单\n华南,200,\n华东,100,首单', 'utf-8') },
+    { name: retryName, mimeType: 'text/tab-separated-values', buffer: Buffer.from('区域\t数量\n西南\t3\n华北\t7', 'utf-8') },
+    { name: badName, mimeType: 'application/json', buffer: Buffer.from('{broken') },
+  ]);
+  await page.getByRole('button', { name: '开始导入 (3)', exact: true }).click();
+  const queue = page.locator('.import-queue');
+  await expect(queue.getByRole('listitem').filter({ hasText: filename })).toContainText('导入完成');
+  await expect(queue.getByRole('listitem').filter({ hasText: retryName })).toContainText('临时不可用');
+  await expect(queue.getByRole('listitem').filter({ hasText: badName }).getByRole('button', { name: '重试' })).toBeEnabled();
+  await queue.getByRole('listitem').filter({ hasText: retryName }).getByRole('button', { name: '重试' }).click();
+  await expect(queue.getByRole('listitem').filter({ hasText: retryName })).toContainText('导入完成');
+  const library = page.locator('.import-library').filter({ has: page.getByRole('heading', { name: '已导入文件', exact: true }) });
+  const row = library.getByRole('row').filter({ hasText: filename });
+  await row.getByRole('button', { name: '查看分析' }).click();
+  const detail = page.getByRole('dialog', { name: '文件分析详情' });
+  await expect(detail).toContainText('重复记录');
+  await expect(detail.locator('.import-metrics > div').filter({ hasText: '重复记录' })).toContainText('1');
+  await expect(detail.locator('.import-metrics > div').filter({ hasText: '缺失单元格' })).toContainText('1');
+  const numericRow = detail.getByRole('row').filter({ has: page.getByRole('cell', { name: '销售额', exact: true }) });
+  await expect(numericRow).toContainText('100 / 200');
+  await expect(numericRow).toContainText('400');
+  await expect(detail).toContainText('华东');
+  await page.screenshot({ path: '../../docs/qa/import-analysis-desktop.png', fullPage: true });
+  await page.getByRole('button', { name: '关闭分析' }).click();
   await page.reload();
-  await page.getByRole('textbox', { name: '搜索数据源' }).fill(filename);
-  await expect(page.getByRole('row').filter({ hasText: filename })).toHaveCount(1);
-  const snapshot = await page.request.get('/api/v1/console');
-  expect(snapshot.ok()).toBeTruthy();
-  const source = (await snapshot.json()).data.sources.find((item: { id: string }) => item.id === sourceId);
-  expect(source).toMatchObject({ name: filename, rows: 2, status: 'ready', coverage: true, role: 'orders' });
-  expect(source.mapping).toMatchObject({ order_id: 'order_id', paid_amount_minor: 'paid_amount_minor' });
+  await expect(library.getByRole('row').filter({ hasText: filename })).toHaveCount(1);
+  await expect(library.getByRole('row').filter({ hasText: retryName })).toHaveCount(1);
+  await expect(page.locator('.import-history-table').getByRole('row').filter({ hasText: badName })).toContainText('失败');
+  await page.screenshot({ path: '../../docs/qa/import-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: '../../docs/qa/import-mobile.png', fullPage: true, animations: 'disabled' });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByRole('button', { name: '返回数据中心' }).click();
+  await expect(page.getByRole('heading', { name: '数据中心', exact: true })).toBeVisible();
+  await library.getByRole('row').filter({ hasText: filename }).getByRole('button', { name: '查看分析' }).click();
+  await expect(page.getByRole('dialog', { name: '文件分析详情' })).toContainText(filename);
+  await page.getByRole('button', { name: '关闭分析' }).click();
+  await page.getByLabel('搜索数据源').fill(filename);
+  await page.getByRole('row').filter({ hasText: filename }).getByRole('button', { name: '查看详情' }).click();
+  await page.getByRole('button', { name: '查看文件分析' }).click();
+  await expect(page.getByRole('dialog', { name: '文件分析详情' })).toContainText(filename);
 });
 
 test('MCP 只读调用引发 revision 更新时，设置页保留未保存的名称', async ({ page }) => {

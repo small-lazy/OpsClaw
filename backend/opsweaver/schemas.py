@@ -83,6 +83,9 @@ class Source(BaseModel):
     columns: list[str] | None = None
     preview: list[dict[str, str]] | None = None
     mapping: dict[str, str] | None = None
+    dataset_id: str | None = None
+    origin: str | None = None
+    analysis_scope: str | None = None
 
 
 class Agent(BaseModel):

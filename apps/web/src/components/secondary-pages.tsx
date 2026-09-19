@@ -1,13 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
-  Check,
   CheckCircle2,
   ChevronRight,
-  CircleHelp,
   Database,
   FileText,
   FlaskConical,
@@ -19,9 +17,9 @@ import {
   Search,
   Settings2,
   ShieldCheck,
-  UploadCloud,
   X,
 } from "lucide-react";
+import { DatasetDetail, DatasetLibrary, ImportWorkspace } from "./import-workspace";
 import type { ConsoleData } from "../lib/types";
 import "./secondary.css";
 import { useModalFocus } from "../lib/use-modal-focus";
@@ -41,7 +39,7 @@ const roles = [
   { value: "support_tickets", label: "售后工单" },
 ];
 const roleName = (role: string) =>
-  roles.find((item) => item.value === role)?.label ?? role;
+  roles.find((item) => item.value === role)?.label ?? (role === "general" ? "通用数据" : role);
 const date = (value: string) =>
   new Date(value).toLocaleString("zh-CN", {
     month: "2-digit",
@@ -131,6 +129,7 @@ function Drawer({
 }
 
 export function DataPage(props: Props) {
+  const [selectedDataset, setSelectedDataset] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [selected, setSelected] = useState<string | null>(null);
@@ -174,7 +173,7 @@ export function DataPage(props: Props) {
         />
         <Summary
           label="业务表覆盖"
-          value={`${new Set(props.data.sources.map((item) => item.role)).size} / 6`}
+          value={`${new Set(props.data.sources.filter(item => roles.some(role => role.value === item.role)).map((item) => item.role)).size} / 6`}
           note="完整覆盖有助于判断行动缺口"
           icon={<ShieldCheck size={19} />}
         />
@@ -208,6 +207,7 @@ export function DataPage(props: Props) {
               onChange={(e) => setFilter(e.target.value)}
             >
               <option value="all">全部类型</option>
+              <option value="general">通用数据</option>
               {roles.map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
@@ -270,6 +270,7 @@ export function DataPage(props: Props) {
           <Empty text="尝试更换关键词，或导入新的业务数据。" />
         )}
       </section>
+      <DatasetLibrary notify={props.notify} />
       <div className="sec-bottom-note">
         <ShieldCheck size={15} />
         每次分析使用固定的数据快照，源文件更新不会改变已发生的运行记录。
@@ -312,6 +313,7 @@ export function DataPage(props: Props) {
             )}
           </div>
           <SourceRows key={source.id} sourceId={source.id} />
+          {source.dataset_id && <button className="button" onClick={() => { setSelectedDataset(source.dataset_id!); setSelected(null); }}>查看文件分析<ArrowRight size={16} /></button>}
           <div className="sec-actions">
             <button
               className="button primary"
@@ -323,6 +325,7 @@ export function DataPage(props: Props) {
           </div>
         </Drawer>
       )}
+      {selectedDataset && <DatasetDetail id={selectedDataset} close={() => setSelectedDataset(null)} notify={props.notify} />}
     </>
   );
 }
@@ -373,432 +376,7 @@ function Summary({
 }
 
 export function OnboardingPage(props: Props) {
-  const [step, setStep] = useState(0);
-  const [role, setRole] = useState("orders");
-  const [filename, setFilename] = useState("");
-  const [content, setContent] = useState("");
-  const [sourceId, setSourceId] = useState("");
-  const [unit, setUnit] = useState("minor");
-  const [timezone, setTimezone] = useState("Asia/Shanghai");
-  const [coverage, setCoverage] = useState(false);
-  const [mapping, setMapping] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
-  const [goal, setGoal] = useState("减少高价值用户跟进遗漏");
-  const [approved, setApproved] = useState(false);
-  const [finished, setFinished] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const headers =
-    content
-      .split(/\r?\n/)[0]
-      ?.split(",")
-      .map((item) => item.trim().replace(/^"|"$/g, "")) ?? [];
-  const fields: Record<string, string[]> = {
-    customers: [
-      "customer_id",
-      "created_at",
-      "marketing_consent",
-      "do_not_contact",
-    ],
-    orders: [
-      "order_id",
-      "customer_id",
-      "paid_at",
-      "paid_amount_minor",
-      "refunded_amount_minor",
-    ],
-    events: ["event_id", "customer_id", "event_time", "session_id"],
-    contacts: ["contact_id", "customer_id", "purpose", "status", "occurred_at"],
-    crm_tasks: ["task_id", "customer_id", "purpose", "status", "due_at"],
-    support_tickets: [
-      "ticket_id",
-      "customer_id",
-      "category",
-      "status",
-      "opened_at",
-    ],
-  };
-  async function readFile(file?: File) {
-    if (!file) return;
-    if (!/\.csv$/i.test(file.name)) {
-      props.notify(
-        "当前导入支持 CSV。XLSX / Parquet 解析尚未接通，请先导出 CSV。",
-      );
-      return;
-    }
-    if (file.size > 50 * 1024 * 1024) {
-      props.notify("文件超过 50 MB，请缩小文件后重试。");
-      return;
-    }
-    const text = await file.text();
-    setFilename(file.name);
-    setContent(text);
-    const columns = text
-      .split(/\r?\n/)[0]
-      .split(",")
-      .map((item) => item.trim().replace(/^"|"$/g, ""));
-    setMapping(
-      Object.fromEntries(
-        fields[role].map((field) => [
-          field,
-          columns.includes(field) ? field : "",
-        ]),
-      ),
-    );
-  }
-  async function next() {
-    setBusy(true);
-    try {
-      if (step === 0) {
-        if (!content.trim()) throw new Error("请先选择有内容的 CSV 文件。");
-        const result = await props.mutate("upload", {
-          filename,
-          content,
-          role,
-        });
-        if (result == null) return;
-        const id =
-          result?.source_id ??
-          result?.id ??
-          result?.source?.id ??
-          result?.dataset_version_id;
-        if (!id)
-          throw new Error("导入接口没有返回数据源 ID，请检查导入结果后重试。");
-        setSourceId(String(id));
-      }
-      if (step === 1) {
-        if (Object.values(mapping).some((value) => !value))
-          throw new Error("请完成所有字段映射。");
-        if (!coverage) throw new Error("请确认来源覆盖声明后继续。");
-        if (
-          (await props.mutate("mapping", {
-            source_id: sourceId,
-            mapping,
-            unit,
-            timezone,
-            coverage,
-          })) == null
-        )
-          return;
-      }
-      if (step === 2 && !goal.trim()) throw new Error("请输入运营目标。");
-      if (step === 3) {
-        if (!approved) throw new Error("请确认工作区的工具权限。");
-        if (
-          (await props.mutate("activate", {
-            source_id: sourceId,
-            goal,
-            tools: ["query_metrics", "get_support_tickets", "create_crm_task"],
-            mode: "simulated",
-          })) == null
-        )
-          return;
-        setFinished(true);
-      } else setStep((value) => value + 1);
-    } catch (error) {
-      props.notify(
-        error instanceof Error ? error.message : "操作失败，请稍后重试。",
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <>
-      <Heading
-        eyebrow="CONNECT YOUR DATA"
-        title="接入业务数据"
-        description="从清晰的数据映射开始，让每一个行动都有依据。"
-      />
-      <div className="sec-wizard">
-        <aside className="sec-wizard-steps">
-          {["上传数据", "确认字段映射", "定义运营目标", "权限与激活"].map(
-            (label, index) => (
-              <div
-                key={label}
-                className={`sec-step ${index === step ? "sec-step-active" : ""}`}
-              >
-                <span>
-                  {index < step || finished ? (
-                    <Check size={16} />
-                  ) : (
-                    String(index + 1).padStart(2, "0")
-                  )}
-                </span>
-                <div>
-                  <strong>{label}</strong>
-                  <small>
-                    {
-                      [
-                        "选择标准表角色与文件",
-                        "确认单位、时间和覆盖",
-                        "限定首个业务场景",
-                        "检查可用能力并启用",
-                      ][index]
-                    }
-                  </small>
-                </div>
-              </div>
-            ),
-          )}
-          <div className="sec-wizard-tip">
-            <ShieldCheck size={20} />
-            <p>执行动作将写入客户管理系统，并回读确认结果。</p>
-          </div>
-        </aside>
-        <section className="panel sec-wizard-body">
-          {finished ? (
-            <div className="sec-complete">
-              <CheckCircle2 size={48} />
-              <h2>数据接入配置已保存</h2>
-              <p>
-                上传文件与字段映射已保存，可在数据中心查看预览。当前分析使用内置业务数据集。
-              </p>
-              <button
-                className="button primary"
-                onClick={() => props.go("/agents")}
-              >
-                查看 Agent
-                <ArrowRight size={16} />
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="sec-section-kicker">STEP 0{step + 1} / 04</div>
-              <h2>
-                {
-                  [
-                    "选择需要接入的数据",
-                    "让字段与业务含义对齐",
-                    "你希望 Agent 关注什么？",
-                    "检查并启用工作流",
-                  ][step]
-                }
-              </h2>
-              <p className="muted">
-                {
-                  [
-                    "支持 CSV 文件，单文件不超过 50 MB。",
-                    "系统建议仅供参考，请确认关键业务字段。",
-                    "当前业务包专注于高价值客户的跟进遗漏。",
-                    "操作能力同时受到来源覆盖和工具权限约束。",
-                  ][step]
-                }
-              </p>
-              {step === 0 && (
-                <>
-                  <label className="sec-label">
-                    标准业务表
-                    <select
-                      className="field"
-                      value={role}
-                      onChange={(e) => {
-                        setRole(e.target.value);
-                        setMapping(
-                          Object.fromEntries(
-                            fields[e.target.value].map((field) => [
-                              field,
-                              headers.includes(field) ? field : "",
-                            ]),
-                          ),
-                        );
-                      }}
-                    >
-                      {roles.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label} · {item.value}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <input
-                    ref={inputRef}
-                    type="file"
-                    accept=".csv"
-                    className="sec-hidden"
-                    onChange={(e) => void readFile(e.target.files?.[0])}
-                  />
-                  <button
-                    className="sec-upload"
-                    onClick={() => inputRef.current?.click()}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      void readFile(e.dataTransfer.files[0]);
-                    }}
-                  >
-                    <span>
-                      <UploadCloud size={26} />
-                    </span>
-                    <strong>{filename || "点击选择或拖入 CSV 文件"}</strong>
-                    <small>
-                      {filename
-                        ? "点击重新选择文件"
-                        : "UTF-8 编码 · 第一行为字段名称"}
-                    </small>
-                  </button>
-                  <p className="sec-helper">
-                    XLSX / Parquet 导入待接通，可先导出为
-                    CSV。复杂引号或多行字段以服务端校验结果为准。
-                  </p>
-                </>
-              )}
-              {step === 1 && (
-                <>
-                  <div className="sec-mapping-title">
-                    <span>标准字段</span>
-                    <span>源文件字段</span>
-                  </div>
-                  {fields[role].map((field) => (
-                    <label className="sec-mapping-row" key={field}>
-                      <code>{field}</code>
-                      <select
-                        className="field"
-                        value={mapping[field] ?? ""}
-                        onChange={(e) =>
-                          setMapping({ ...mapping, [field]: e.target.value })
-                        }
-                      >
-                        <option value="">请选择对应字段</option>
-                        {headers.map((header, index) => (
-                          <option key={`${header}-${index}`} value={header}>
-                            {header}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  ))}
-                  <div className="sec-form-grid">
-                    <label className="sec-label">
-                      金额单位
-                      <select
-                        className="field"
-                        value={unit}
-                        onChange={(e) => setUnit(e.target.value)}
-                      >
-                        <option value="minor">人民币分（整数）</option>
-                        <option value="major">人民币元</option>
-                      </select>
-                    </label>
-                    <label className="sec-label">
-                      来源时区
-                      <select
-                        className="field"
-                        value={timezone}
-                        onChange={(e) => setTimezone(e.target.value)}
-                      >
-                        <option value="Asia/Shanghai">
-                          Asia/Shanghai · UTC+8
-                        </option>
-                        <option value="UTC">UTC</option>
-                      </select>
-                    </label>
-                  </div>
-                  <label className="sec-check">
-                    <input
-                      type="checkbox"
-                      checked={coverage}
-                      onChange={(e) => setCoverage(e.target.checked)}
-                    />
-                    <span>
-                      我确认该来源在声明范围内完整覆盖，空记录不代表未接入的业务。
-                    </span>
-                  </label>
-                </>
-              )}
-              {step === 2 && (
-                <>
-                  <label className="sec-label">
-                    运营目标
-                    <textarea
-                      aria-label="运营目标"
-                      className="field"
-                      rows={3}
-                      value={goal}
-                      onChange={(e) => setGoal(e.target.value)}
-                    />
-                  </label>
-                  <div className="sec-rule-card">
-                    <span className="sec-icon-tile">
-                      <Layers3 size={21} />
-                    </span>
-                    <div>
-                      <strong>高价值用户挽回</strong>
-                      <p>
-                        从客户价值、近期支付和活跃变化发现信号，再检查是否缺少跟进。
-                      </p>
-                      <span className="badge">24 小时宽限期</span>
-                      <span className="badge">72 小时触达冷却</span>
-                    </div>
-                  </div>
-                  <div className="sec-info">
-                    <CircleHelp size={18} />
-                    <span>
-                      来源不足时仅提供风险洞察，不能据此断言没有跟进动作。
-                    </span>
-                  </div>
-                </>
-              )}
-              {step === 3 && (
-                <>
-                  <div className="sec-permission">
-                    <CheckCircle2 size={20} />
-                    <div>
-                      <strong>读取业务指标与证据</strong>
-                      <p>仅访问已接入的业务范围与固定快照</p>
-                    </div>
-                    <span className="badge">只读</span>
-                  </div>
-                  <div className="sec-permission">
-                    <ShieldCheck size={20} />
-                    <div>
-                      <strong>在 Sandbox 建立 CRM 任务</strong>
-                      <p>执行前完成策略校验，按要求提交人工审批</p>
-                    </div>
-                    <span className="badge">受控写入</span>
-                  </div>
-                  <div className="sec-info">
-                    <Info size={17} />
-                    <span>
-                      发送营销、发放优惠券及真实 CRM 写入未在此接入流程中授权。
-                    </span>
-                  </div>
-                  <label className="sec-check">
-                    <input
-                      type="checkbox"
-                      checked={approved}
-                      onChange={(e) => setApproved(e.target.checked)}
-                    />
-                    <span>确认以上目标与工具权限，激活工作区。</span>
-                  </label>
-                </>
-              )}
-              <div className="sec-wizard-footer">
-                <button
-                  className="button"
-                  disabled={step === 0 || busy}
-                  onClick={() => setStep((value) => value - 1)}
-                >
-                  上一步
-                </button>
-                <button
-                  className="button primary"
-                  disabled={busy}
-                  onClick={() => void next()}
-                >
-                  {busy
-                    ? "正在处理…"
-                    : step === 3
-                      ? "编译并激活"
-                      : "保存并继续"}
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-            </>
-          )}
-        </section>
-      </div>
-    </>
-  );
+  return <ImportWorkspace notify={props.notify} go={props.go} />;
 }
 
 export function ExperimentsPage(props: Props) {

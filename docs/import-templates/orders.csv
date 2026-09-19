@@ -1,0 +1,2 @@
+order_id,customer_id,paid_at,status,paid_amount_minor,refunded_amount_minor,currency,updated_at
+YOUR-ORDER-ID,YOUR-CUSTOMER-ID,2026-09-18T00:00:00Z,paid,10000,0,CNY,2026-09-19T00:00:00Z

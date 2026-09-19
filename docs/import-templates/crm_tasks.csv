@@ -1,0 +1,2 @@
+task_id,customer_id,purpose,signal_episode_ref,status,owner_id,due_at,updated_at
+YOUR-TASK-ID,YOUR-CUSTOMER-ID,retention_followup,YOUR-EPISODE-ID,open,YOUR-OWNER-ID,2026-09-20T00:00:00Z,2026-09-19T00:00:00Z

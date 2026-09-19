@@ -1,0 +1,2 @@
+event_id,customer_id,event_name,event_time,session_id
+YOUR-EVENT-ID,YOUR-CUSTOMER-ID,session_start,2026-09-18T00:00:00Z,YOUR-SESSION-ID

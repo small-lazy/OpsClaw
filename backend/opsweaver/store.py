@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = Path(os.environ.get("OPSWEAVER_DATA_DIR", str(ROOT / "data")))
 DATA.mkdir(parents=True, exist_ok=True)
 DB = DATA / "opsweaver.sqlite3"
-KINDS = ("incidents", "runs", "plans", "actions", "sources", "agents", "experiments", "memories", "skills", "audit")
+KINDS = ("incidents", "runs", "plans", "actions", "sources", "agents", "experiments", "memories", "skills", "audit", "datasets", "imports")
 
 
 def now() -> str:
@@ -42,6 +42,7 @@ def initialize() -> None:
         connection.execute("CREATE TABLE IF NOT EXISTS requests(key TEXT PRIMARY KEY, request_hash TEXT NOT NULL, response TEXT NOT NULL)")
         connection.execute("CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY, created_at TEXT NOT NULL)")
         connection.execute("CREATE TABLE IF NOT EXISTS skill_versions(skill_id TEXT NOT NULL, version TEXT NOT NULL, document TEXT NOT NULL, PRIMARY KEY(skill_id,version))")
+        connection.execute("CREATE TABLE IF NOT EXISTS dataset_rows(dataset_id TEXT NOT NULL,row_index INTEGER NOT NULL,document TEXT NOT NULL,PRIMARY KEY(dataset_id,row_index))")
         fresh = not connection.execute("SELECT 1 FROM metadata WHERE key='initialized'").fetchone()
         if fresh:
             seed = json.loads((ROOT / "seed.json").read_text(encoding="utf-8"))
@@ -62,7 +63,7 @@ def initialize() -> None:
 
 
 def migrate_product_text(connection):
-    if meta(connection, "product_text_version") == 3:
+    if meta(connection, "external_business") or meta(connection, "product_text_version") == 3:
         return
     replacements = (("演示检测仍使用固定快照", "自动分析使用内置业务数据"), ("Mock CRM", "任务中心"), ("模拟外部系统", "任务中心"), ("合成演示数据", "内置业务数据"), ("合成快照", "业务快照"), ("固定演示快照", "当前业务快照"), ("演示快照", "业务快照"), ("模拟时钟", "数据时间"), ("模拟实验", "内置实验"), ("合成数据", "内置数据"), ("合成样本", "内置样本"), ("合成观察", "内置数据观察"), ("确定性演示", "确定性规则"), ("演示电商工作区", "电商运营工作区"), ("本地演示", "本机工作区"), ("演示 Agent", "运营 Agent"))
     def clean(value):
@@ -89,13 +90,14 @@ def migrate_product_text(connection):
 def refresh_business(connection):
 
     as_of = meta(connection, "as_of")
-    business.initialize(DATA, as_of)
-    labels = {"customers": "内置客户档案", "orders": "内置订单明细", "events": "内置行为事件", "contacts": "内置触达记录", "crm_tasks": "内置 CRM 任务", "support_tickets": "内置售后工单"}
+    if not meta(connection, "external_business"):
+        business.initialize(DATA, as_of)
+    labels = {"customers": "客户档案", "orders": "订单明细", "events": "行为事件", "contacts": "触达记录", "crm_tasks": "CRM 任务", "support_tickets": "售后工单"}
     prior_sources = all_items(connection, "sources")
     for stat in business.source_stats(DATA):
         old = next((s for s in prior_sources if s["role"] == stat["role"] and s.get("origin") != "user_upload" and not s["id"].startswith("upload-")), None)
-        partial = stat["role"] == "contacts"
-        source = {"id": old["id"] if old else "builtin-" + stat["role"], "role": stat["role"], "name": labels[stat["role"]], "rows": stat["rows"], "columns": stat["columns"], "preview": [{k: "未知" if v is None else str(v) for k, v in row.items()} for row in stat["preview"]], "status": "incomplete" if partial else "ready", "coverage": not partial, "as_of": as_of, "origin": "built_in", "analysis_scope": "business_sqlite"}
+        partial = stat["role"] not in (meta(connection, "external_roles") or []) if meta(connection, "external_business") else stat["role"] == "contacts"
+        source = {"id": old["id"] if old else "builtin-" + stat["role"], "role": stat["role"], "name": labels[stat["role"]], "rows": stat["rows"], "columns": stat["columns"], "preview": [{k: "未知" if v is None else str(v) for k, v in row.items()} for row in stat["preview"]], "status": "incomplete" if partial else "ready", "coverage": not partial, "as_of": as_of, "origin": "business_workspace" if meta(connection, "external_business") else "built_in", "analysis_scope": "business_sqlite"}
         put(connection, "sources", source)
     computed = business.evaluate_incidents(DATA, as_of)
     computed_ids = {item["id"] for item in computed}
@@ -103,7 +105,11 @@ def refresh_business(connection):
         if previous["id"] in computed_ids or previous.get("run_id") or previous.get("business_eligible") is False:
             continue
 
-        detail = business.customer_detail(DATA, previous["customer"], as_of)
+        try:
+            detail = business.customer_detail(DATA, previous["customer"], as_of)
+        except ValueError:
+            connection.execute("DELETE FROM incidents WHERE id=?", (previous["id"],))
+            continue
         if not meta(connection, "legacy_incident:" + previous["id"]):
             set_meta(connection, "legacy_incident:" + previous["id"], previous)
         previous.update(status="dismissed", title="历史案件：当前未满足缺口条件", value=detail["net90"], business_eligible=False, facts=[f"最近 90 天净支付 ¥{detail['net90']/100:,.2f}。", f"过去 28 天支付 {detail['orders28']} 笔，最近 14 天支付 {detail['orders14']} 笔；最近/前一周期会话 {detail['sessions14']}/{detail['sessions_previous14']} 次。", f"查询到成功触达 {len(detail['successful_contacts_72h'])} 次、进行中任务 {len(detail['active_tasks'])} 条。", f"未关闭售后工单 {len(detail['open_support_tickets'])} 条；当前组合条件未产生新的行动缺口。"])
@@ -115,7 +121,7 @@ def refresh_business(connection):
             incident["status"] = previous["status"]
             incident["run_id"] = previous.get("run_id")
         put(connection, "incidents", incident)
-    set_meta(connection, "mode", "BUILT_IN")
+    set_meta(connection, "mode", "USER_DATA" if meta(connection, "external_business") else "BUILT_IN")
     set_meta(connection, "business_data_version", 1)
     update_operational_metrics(connection)
     return computed

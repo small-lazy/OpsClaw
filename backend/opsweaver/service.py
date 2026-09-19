@@ -307,7 +307,7 @@ def dispatch(connection, command, payload):
         if role not in ROLES:
             raise DomainError("INVALID_ROLE", "请选择六类标准业务表之一。", 422)
         if not filename.lower().endswith(".csv") or not isinstance(content, str):
-            raise DomainError("UNSUPPORTED_FORMAT", "当前本地版已接通 CSV；XLSX 与 Parquet 尚未接通。", 422)
+            raise DomainError("UNSUPPORTED_FORMAT", "此兼容接口接收 CSV 文本；批量文件请使用数据导入接口。", 422)
         if len(content.encode("utf-8")) > 50 * 1024 * 1024:
             raise DomainError("FILE_TOO_LARGE", "文件不能超过 50 MB。", 413)
         csv.field_size_limit(5 * 1024 * 1024)
@@ -334,7 +334,7 @@ def dispatch(connection, command, payload):
         (store.DATA / (source_id + ".csv")).write_text(content, encoding="utf-8")
         source = {"id": source_id, "role": role, "name": filename.replace("\\", "/").split("/")[-1], "rows": count, "status": "needs_mapping", "coverage": False, "as_of": store.meta(connection, "as_of"), "columns": columns, "preview": preview, "origin": "user_upload", "analysis_scope": "preview_only"}
         store.put(connection, "sources", source)
-        return {"source_id": source_id, "columns": columns, "rows": count, "preview": preview}, "CSV 已保存与剖析，请确认映射。上传数据尚未替换内置业务数据。"
+        return {"source_id": source_id, "columns": columns, "rows": count, "preview": preview}, "CSV 已保存与剖析，请确认映射。通用分析与业务接入请使用数据导入接口。"
     if command == "mapping":
         source = require(connection, "sources", payload.get("source_id"))
         mapping = payload.get("mapping")
@@ -349,7 +349,7 @@ def dispatch(connection, command, payload):
             raise DomainError("COVERAGE_REQUIRED", "请明确确认来源覆盖范围。", 422)
         source.update(mapping=mapping, status="ready", coverage=True, unit=payload["unit"], timezone=payload["timezone"])
         store.put(connection, "sources", source)
-        return source, "映射已保存；可查看导入数据预览。当前自动分析使用内置业务数据库，上传文件尚未加入分析管线。"
+        return source, "映射已保存；可查看导入数据预览。通过数据集导入并接入业务分析后，相关记录会参与规则计算。"
     if command == "activate":
         if payload.get("source_id"):
             source = require(connection, "sources", payload["source_id"])
@@ -398,7 +398,7 @@ def mcp_invoke(connection, skill, tool, arguments):
         raise DomainError("TOOL_FORBIDDEN", "该工具不在 Skill 的授权范围内。", 403)
     if tool == "console_summary":
         state = store.snapshot(connection)
-        return {"mode": state["mode"], "as_of": state["as_of"], "incidents": len(state["incidents"]), "pending_approvals": sum(p["status"] == "pending" for p in state["plans"]), "notes": "内置业务数据，指标由本机记录计算"}
+        return {"mode": state["mode"], "as_of": state["as_of"], "incidents": len(state["incidents"]), "pending_approvals": sum(p["status"] == "pending" for p in state["plans"]), "notes": "指标由当前工作区业务记录计算"}
     if tool == "list_incidents":
         return [i for i in store.all_items(connection, "incidents") if not arguments.get("status") or i["status"] == arguments["status"]][:100]
     customer = arguments.get("customer_id")

@@ -20,7 +20,19 @@ def _time(value: str) -> datetime:
 
 
 def _connect(data_dir: Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(Path(data_dir) / "business.sqlite3", timeout=30)
+    filename = "business.sqlite3"
+    app_db = Path(data_dir) / "opsweaver.sqlite3"
+    from . import store
+    app_db = store.DB if Path(data_dir) == store.DATA else app_db
+    if app_db.exists():
+        with sqlite3.connect(app_db) as state:
+            try:
+                active = state.execute("SELECT value FROM metadata WHERE key='external_business'").fetchone()
+                if active and json.loads(active[0]):
+                    filename = "user_business.sqlite3"
+            except sqlite3.OperationalError:
+                pass
+    connection = sqlite3.connect(Path(data_dir) / filename, timeout=30)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys=ON")
     return connection
@@ -118,6 +130,10 @@ def _aggregate(db: sqlite3.Connection, now: datetime) -> list[dict[str, Any]]:
     meta = db.execute("SELECT value FROM business_metadata WHERE key='as_of'").fetchone()
     watermark = _time(json.loads(meta[0]))
     complete_window = watermark >= now and now - watermark <= timedelta(hours=24)
+    origin = db.execute("SELECT value FROM business_metadata WHERE key='origin'").fetchone()
+    if origin and json.loads(origin[0]) == "user_upload":
+        roles = db.execute("SELECT value FROM business_metadata WHERE key='roles'").fetchone()
+        complete_window = complete_window and roles is not None and set(json.loads(roles[0])) == set(ROLES)
     result = []
     for row in rows:
         item = dict(row)
@@ -176,3 +192,14 @@ def evaluate_incidents(data_dir: Path, as_of: str) -> list[dict[str, Any]]:
         facts = [f"最近 90 天净支付 ¥{c['net90']/100:,.2f}，高价值门槛为 P80 ¥{c['p80_minor']/100:,.2f} 且不低于 ¥500.00。", f"过去 28 天支付 {c['orders28']} 笔，最近 14 天支付 {c['orders14']} 笔；前 14 天会话 {c['sessions_previous14']} 次，最近 14 天 {c['sessions14']} 次。", crm_fact, f"查询到 {len(tickets)} 条未关闭工单：{support_text}；优先安排售后核查。" if tickets else "查询覆盖范围内未发现未关闭售后工单，可提出人工跟进任务。"]
         incidents.append({"id": "inc-" + c["customer_id"], "customer": c["customer_id"], "segment": c["segment"], "title": title, "kind": kind, "priority": priority, "status": "open" if complete else "blocked", "hours": c["hours"], "value": c["net90"], "consent": None if c["marketing_consent"] is None else bool(c["marketing_consent"]), "support": bool(tickets), "coverage": complete, "owner": overdue[0]["owner_id"] if overdue else "售后支持组" if tickets else "客户成功组", "facts": facts, "run_id": None})
     return sorted(incidents, key=lambda item: (-item["priority"], item["customer"]))
+
+
+def create_empty(path: Path, as_of: str):
+    """Create an isolated external workspace with the same validated relational schema."""
+    from . import store
+    with _connect(store.DATA) as source, sqlite3.connect(path) as target:
+        for row in source.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"):
+            statement = row[0].replace('CREATE TABLE ', 'CREATE TABLE IF NOT EXISTS ', 1)
+            target.execute(statement)
+        for key, value in {'initialized': True, 'as_of': as_of, 'origin': 'user_upload'}.items():
+            target.execute('INSERT OR IGNORE INTO business_metadata VALUES(?,?)', (key, json.dumps(value)))

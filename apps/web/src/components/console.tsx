@@ -417,7 +417,7 @@ function Overview({ data, go, mutate, notify }: PageProps) {
         {data.as_of.slice(0, 16).replace("T", " ")}
         <span className="divider" />
         {data.sources.length} 个数据源
-        <span className="mini-label">内置数据</span>
+        <span className="mini-label">工作区数据</span>
       </div>
       <div className="metrics">
         <button className="metric" onClick={() => go("/incidents")}>
@@ -580,7 +580,7 @@ function Overview({ data, go, mutate, notify }: PageProps) {
           <div className="panel-head">
             <h2>
               行动缺口趋势{" "}
-              <span className="inline-meta">近 {range} 天 · 内置数据</span>
+              <span className="inline-meta">近 {range} 天 · 工作区数据</span>
             </h2>
             <div className="segmented">
               {["7", "30"].map((r) => (
@@ -663,7 +663,7 @@ function Overview({ data, go, mutate, notify }: PageProps) {
         <Dialog title="行动指标与趋势明细" onClose={() => setDetail(false)}>
           <div className="info-strip">
             <Info size={18} />
-            当前数据为预置内置数据，不代表实际业务收益。
+            业务收益需结合完整观察期与结果核验进行判断。
           </div>
           <h3>24 小时行动覆盖率</h3>
           <p className="body-copy">
@@ -920,7 +920,7 @@ function IncidentDetail({ data, go, mutate, id }: PageProps & { id: string }) {
           <section className="panel">
             <div className="panel-head">
               <h2>业务信号与缺口依据</h2>
-              <Badge state="ready">内置数据</Badge>
+              <Badge state="ready">工作区数据</Badge>
             </div>
             <div className="detail-metrics">
               <div>
@@ -1046,7 +1046,7 @@ function IncidentDetail({ data, go, mutate, id }: PageProps & { id: string }) {
               </div>
               <div>
                 <dt>数据环境</dt>
-                <dd>内置数据</dd>
+                <dd>工作区数据</dd>
               </div>
             </dl>
           </section>
@@ -1089,7 +1089,7 @@ function IncidentDetail({ data, go, mutate, id }: PageProps & { id: string }) {
             </div>
             <div>
               <dt>数据属性</dt>
-              <dd>内置业务数据</dd>
+              <dd>工作区业务数据</dd>
             </div>
           </dl>
           <div className="info-strip">
@@ -1256,7 +1256,7 @@ function RunPage({ data, go, notify, id }: PageProps & { id: string }) {
       </button>
       <Heading
         title={run.title}
-        subtitle={`${run.customer}  /  ${run.id}  /  内置数据`}
+        subtitle={`${run.customer}  /  ${run.id}  /  工作区数据`}
       >
         <Badge state={run.state} />
         <button

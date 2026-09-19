@@ -64,6 +64,7 @@ export type Action = {
   owner: string;
 };
 export type Source = {
+  dataset_id?: string;
   id: string;
   role: string;
   name: string;

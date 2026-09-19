@@ -1,0 +1,2 @@
+customer_id,created_at,segment,marketing_consent,do_not_contact,updated_at,coverage_complete,coverage_reason,first_observed_at
+YOUR-CUSTOMER-ID,2026-09-01T00:00:00Z,普通客户,,0,2026-09-19T00:00:00Z,0,待确认数据覆盖范围,2026-09-19T00:00:00Z

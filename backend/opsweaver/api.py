@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 import httpx
-from fastapi import Depends, FastAPI, Header, Request, Response
+from fastapi import Depends, FastAPI, Header, Request, Response, UploadFile, File
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from . import store
@@ -192,6 +192,10 @@ def source_data_rows(source_id: str, offset: int = 0, limit: int = 25):
         raise DomainError("INVALID_PAGE", "offset 不能小于 0，limit 需为 1–100。", 422)
     with store.connect() as connection:
         source = require(connection, "sources", source_id)
+    if source.get("dataset_id"):
+        from . import imports
+        with store.connect() as connection:
+            return {"data": imports.rows(connection, source["dataset_id"], offset, limit)}
     if source.get("origin") == "user_upload" or source_id.startswith("upload-"):
 
         import re
@@ -225,3 +229,69 @@ def customer_business_detail(customer_id: str):
         return {"data": business.customer_detail(store.DATA, customer_id, as_of)}
     except ValueError as error:
         raise DomainError("CUSTOMER_NOT_FOUND", "没有找到该客户的业务记录。", 404) from error
+
+
+@app.post('/api/v1/imports', dependencies=[Depends(session)])
+async def import_uploads(files: list[UploadFile] = File(...)):
+    from . import imports
+    from starlette.concurrency import run_in_threadpool
+    if not 1 <= len(files) <= 50:
+        raise DomainError('FILE_COUNT_LIMIT', '每批上传 1–50 个文件。', 422)
+    payload, total = [], 0
+    try:
+        for upload in files:
+            raw = await upload.read(imports.MAX_FILE + 1)
+            total += len(raw)
+            if total > 50 * 1024 * 1024:
+                raise DomainError('BATCH_TOO_LARGE', '每批文件总大小不能超过 50 MB。', 413)
+            name = (upload.filename or 'unnamed').replace('\\', '/').split('/')[-1]
+            payload.append((name, raw))
+        return {'data': await run_in_threadpool(imports.import_files, payload)}
+    finally:
+        for upload in files:
+            await upload.close()
+
+
+@app.get('/api/v1/imports')
+def import_history():
+    with store.connect() as connection:
+        return {'data': list(reversed(store.all_items(connection, 'imports')))}
+
+
+@app.get('/api/v1/imports/{import_id}')
+def import_detail(import_id: str):
+    with store.connect() as connection:
+        return {'data': require(connection, 'imports', import_id)}
+
+
+@app.get('/api/v1/datasets')
+def dataset_list():
+    with store.connect() as connection:
+        return {'data': list(reversed(store.all_items(connection, 'datasets')))}
+
+
+@app.get('/api/v1/datasets/{dataset_id}')
+def dataset_detail(dataset_id: str):
+    with store.connect() as connection:
+        return {'data': require(connection, 'datasets', dataset_id)}
+
+
+@app.get('/api/v1/datasets/{dataset_id}/rows')
+def dataset_rows(dataset_id: str, offset: int = 0, limit: int = 25):
+    from . import imports
+    with store.connect() as connection:
+        return {'data': imports.rows(connection, dataset_id, offset, limit)}
+
+
+@app.post('/api/v1/datasets/{dataset_id}/activate', dependencies=[Depends(session)])
+def dataset_activate(dataset_id: str):
+    from . import imports
+    return {'data': imports.activate(dataset_id)}
+
+
+@app.get('/api/v1/business-schema')
+def business_schema():
+    from . import business
+    with business._connect(store.DATA) as connection:
+        tables = [{'role': role, 'columns': [row[1] for row in connection.execute(f'PRAGMA table_info({role})')]} for role in business.ROLES]
+    return {'data': {'tables': tables, 'activation': '客户表先接入，其他表按 customer_id 关联；按主键合并。', 'currency': 'CNY', 'amount_unit': 'minor', 'timestamp': 'ISO 8601；无时区时间按 UTC 处理。'}}
