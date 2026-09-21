@@ -5,13 +5,16 @@ import hashlib
 import json
 import secrets
 import sys
+from pathlib import Path
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 import httpx
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, Request, Response, UploadFile, File
 from fastapi.responses import JSONResponse, StreamingResponse
 
+load_dotenv(Path(__file__).resolve().parents[1] / '.env', override=False)
 from . import store
 from .schemas import Arguments, ConsoleEnvelope
 from .service import DomainError, crm_request, dispatch, mcp_invoke, require, skill_arguments
@@ -21,7 +24,14 @@ from .service import DomainError, crm_request, dispatch, mcp_invoke, require, sk
 async def lifespan(app):
     store.initialize()
     store.secret("mcp.token")
-    yield
+    from .growth_worker import run_worker
+    stop = asyncio.Event()
+    worker = asyncio.create_task(run_worker(stop))
+    try:
+        yield
+    finally:
+        stop.set()
+        await worker
 
 
 app = FastAPI(title="OpsClaw Local API", version="0.1.0", lifespan=lifespan)
@@ -295,3 +305,7 @@ def business_schema():
     with business._connect(store.DATA) as connection:
         tables = [{'role': role, 'columns': [row[1] for row in connection.execute(f'PRAGMA table_info({role})')]} for role in business.ROLES]
     return {'data': {'tables': tables, 'activation': '客户表先接入，其他表按 customer_id 关联；按主键合并。', 'currency': 'CNY', 'amount_unit': 'minor', 'timestamp': 'ISO 8601；无时区时间按 UTC 处理。'}}
+
+
+from .growth_api import create_router as create_growth_router
+app.include_router(create_growth_router(session))

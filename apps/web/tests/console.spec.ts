@@ -7,6 +7,7 @@ test("all workspaces render without JavaScript errors and stay within desktop vi
   page.on("pageerror", (e) => errors.push(e.message));
   for (const route of [
     "/overview",
+    "/growth",
     "/incidents",
     "/incidents/inc-C001",
     "/agents",
@@ -119,6 +120,7 @@ test("mobile navigation and all principal surfaces have no page overflow", async
   await page.setViewportSize({ width: 390, height: 844 });
   for (const route of [
     "/overview",
+    "/growth",
     "/incidents",
     "/runs/run-C001",
     "/approvals",

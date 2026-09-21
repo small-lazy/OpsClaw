@@ -71,6 +71,7 @@ import type { ConsoleData, Incident, Plan, Run, PageProps } from "../lib/types";
 import { seed } from "../lib/seed";
 import type { components } from "../lib/api.generated";
 import { SkillsPage } from "./skills-page";
+import { GrowthPage } from "./growth-page";
 import {
   DataPage,
   OnboardingPage,
@@ -279,6 +280,7 @@ const navGroups = [
     label: "工作空间",
     items: [
       { url: "/overview", label: "运营总览", icon: LayoutDashboard },
+      { url: "/growth", label: "增长工作台", icon: TrendingUp },
       { url: "/incidents", label: "行动缺口", icon: ClipboardList },
       { url: "/agents", label: "Agent 运行", icon: Bot },
       { url: "/approvals", label: "审批中心", icon: FileCheck2 },
@@ -2352,6 +2354,8 @@ function App() {
             <Approvals {...props} />
           ) : root === "actions" ? (
             <Actions {...props} />
+          ) : root === "growth" ? (
+            <GrowthPage {...props} />
           ) : root === "data" ? (
             <DataPage {...props} />
           ) : root === "onboarding" ? (
