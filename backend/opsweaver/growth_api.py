@@ -38,7 +38,7 @@ def discover_report(report):
     schools = list(dict.fromkeys(c['school'] for c in report['candidates'] if c.get('school') and c['school'] != '未标注'))[:5]
     for school in schools:
         try:
-            for result in monitor.brave_search(f'{school} 招生 复试 通知')[:5]:
+            for result in monitor.brave_search(f'{school} 新品 促销 补货 节日 商业公告')[:5]:
                 evidence.append({'school': school, 'title': str(result.get('title', ''))[:500], 'url': result.get('url', ''),
                                  'excerpt': str(result.get('description', ''))[:1500], 'retrieved_at': store.now(), 'status': 'unverified'})
         except DomainError as error:

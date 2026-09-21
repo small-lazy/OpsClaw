@@ -140,3 +140,14 @@ def test_signal_text_without_catalog_does_not_create_asset_tables(conn):
     tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     assert tables == {'growth_records'}
     assert 'text' not in row
+
+
+def test_commercial_brand_market_category_audience_aliases(conn):
+    growth.ingest_orders(conn, [
+        {'订单号': 'BRAND-01', '支付时间': '2026-09-01', '实付金额': '120.50', '订单状态': '已完成', '品牌': '远山咖啡', '品类': '挂耳咖啡', '产品': '秋季组合'},
+        {'订单号': 'MARKET-02', '支付时间': '2026-09-01', '实付金额': '80', '订单状态': '已完成', '市场': '华东市场', '客群': '办公室客群', '产品': '季度订阅'},
+    ], amount_unit='yuan')
+    report = growth.analyze(conn, '2026-09-01', '2026-09-01')
+    assert report['summary']['current'] == {'orders': 2, 'gmv_minor': 20050}
+    assert {row['name'] for row in report['groups']['school']} == {'远山咖啡', '华东市场'}
+    assert {(row['school'], row['name']) for row in report['groups']['college']} == {('远山咖啡', '挂耳咖啡'), ('华东市场', '办公室客群')}

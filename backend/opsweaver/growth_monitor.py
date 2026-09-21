@@ -87,7 +87,7 @@ def public_url(value, allowed_domains=None):
             raise ValueError()
         return urlunsplit((parsed.scheme, parsed.netloc, parsed.path or '/', parsed.query, ''))
     except (ValueError, OSError) as error:
-        raise DomainError('INVALID_PUBLIC_URL', '请填写可访问的 HTTPS 公网来源，且域名需属于已确认的学校官网。', 422) from error
+        raise DomainError('INVALID_PUBLIC_URL', '请填写可访问的 HTTPS 公网来源，且域名需属于已确认的品牌或市场官网。', 422) from error
 
 
 def save_factor(connection, payload):
@@ -95,14 +95,14 @@ def save_factor(connection, payload):
     domains = payload.get('allowed_domains', [])
     urls = payload.get('urls', [])
     if not school or not name or not isinstance(domains, list) or not domains or len(domains) > 20:
-        raise DomainError('FACTOR_FIELDS', '请填写因子名称、学校和官网域名白名单。', 422)
+        raise DomainError('FACTOR_FIELDS', '请填写因子名称、品牌或市场和官网域名白名单。', 422)
     domains = [str(d).strip().lower() for d in domains]
     if any('/' in d or ':' in d or not d or '.' not in d for d in domains):
         raise DomainError('FACTOR_DOMAINS', '白名单填写域名，不含协议或路径。', 422)
     if not isinstance(urls, list) or len(urls) > 10:
         raise DomainError('FACTOR_URLS', '每个因子最多配置 10 个公告列表页。', 422)
     urls = [public_url(u, domains) for u in urls]
-    keywords = payload.get('keywords') or ['复试', '推免', '招生']
+    keywords = payload.get('keywords') or ['促销', '新品', '补货', '节日']
     if not isinstance(keywords, list) or len(keywords) > 20 or any(not isinstance(k, str) or not k.strip() for k in keywords):
         raise DomainError('FACTOR_KEYWORDS', '关键词需要非空文本数组，最多 20 项。', 422)
     interval = payload.get('interval_seconds', policy(connection)['monitor_interval_seconds'])
@@ -113,7 +113,7 @@ def save_factor(connection, payload):
     if existing:
         return existing
     factor = {'id': identifier, 'name': name[:200], 'school': school[:200], 'college': str(payload.get('college', ''))[:200],
-              'query': str(payload.get('query') or f'{school} {payload.get("college", "")} 招生 复试 通知')[:500],
+              'query': str(payload.get('query') or f'{school} {payload.get("college", "")} 新品 促销 补货 节日 商业公告')[:500],
               'allowed_domains': domains, 'urls': urls, 'keywords': keywords, 'status': 'pending_review',
               'candidate_id': payload.get('candidate_id'), 'created_at': store.now(), 'last_checked_at': None,
               'next_check_at': None, 'last_error': None, 'failure_count': 0}
@@ -130,7 +130,7 @@ def save_factor(connection, payload):
 def save_event(connection, payload, *, discovered=False):
     title, school = str(payload.get('title', '')).strip(), str(payload.get('school', '')).strip()
     if not title or not school:
-        raise DomainError('EVENT_FIELDS', '事件需要标题和学校。', 422)
+        raise DomainError('EVENT_FIELDS', '事件需要标题和品牌或市场。', 422)
     url = public_url(payload.get('url', ''))
     published = payload.get('published_at')
     if published:
@@ -149,10 +149,10 @@ def save_event(connection, payload, *, discovered=False):
         return old
     admissions = payload.get('admissions_count')
     if admissions is not None and (type(admissions) is not int or not 1 <= admissions <= 1000000):
-        raise DomainError('EVENT_ADMISSIONS', '招生规模需要 1–1000000 的整数。', 422)
+        raise DomainError('EVENT_ADMISSIONS', '潜在人群规模需要 1–1000000 的整数。', 422)
     item = {'id': identifier, 'title': title[:500], 'school': school[:200], 'college': str(payload.get('college', ''))[:200],
             'url': url, 'published_at': published, 'detected_at': store.now(), 'status': 'pending_review',
-            'factor_id': payload.get('factor_id'), 'event_type': str(payload.get('event_type', 'admissions_notice'))[:100],
+            'factor_id': payload.get('factor_id'), 'event_type': str(payload.get('event_type', 'commercial_event'))[:100],
             'admissions_count': admissions, 'excerpt': str(payload.get('excerpt', ''))[:1500],
             'source': 'monitor' if discovered else 'manual', 'causal_status': 'unconfirmed'}
     if old:

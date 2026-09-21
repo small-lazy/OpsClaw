@@ -24,7 +24,7 @@ def workspace(tmp_path, monkeypatch):
 
 def factor(active=False, urls=None):
     with store.transaction() as conn:
-        result = monitor.save_factor(conn, {'school': '甲大学', 'name': '招生公告', 'allowed_domains': ['university.edu.cn'], 'urls': ['https://admissions.university.edu.cn/notices/'] if urls is None else urls})
+        result = monitor.save_factor(conn, {'school': '甲大学', 'name': '招生公告', 'keywords': ['复试', '推免', '招生'], 'allowed_domains': ['university.edu.cn'], 'urls': ['https://admissions.university.edu.cn/notices/'] if urls is None else urls})
         if active:
             result = monitor.review(conn, 'factor', result['id'], 'approve')
         return result
@@ -163,3 +163,18 @@ def test_rejection_during_fetch_prevents_event_write(workspace, monkeypatch):
     with store.connect() as conn:
         assert monitor.records(conn, 'event') == []
         assert monitor.get(conn, 'factor', item['id'])['lease_until'] is None
+
+
+
+def test_commercial_default_factor_discovers_product_notice(workspace, monkeypatch):
+    with store.transaction() as conn:
+        item = monitor.save_factor(conn, {'school': '远山咖啡', 'college': '挂耳咖啡', 'name': '新品发布', 'allowed_domains': ['brand.example'], 'urls': ['https://brand.example/news']})
+        assert item['keywords'] == ['促销', '新品', '补货', '节日']
+        assert '新品' in item['query'] and '商业公告' in item['query']
+        assert '招生' not in item['query']
+        monitor.review(conn, 'factor', item['id'], 'approve')
+    fake_html(monkeypatch, '<a href="/news/autumn">秋季咖啡新品发布</a>')
+    events = monitor.monitor_one(item['id'])['new_events']
+    assert len(events) == 1
+    assert events[0]['title'] == '秋季咖啡新品发布'
+    assert events[0]['school'] == '远山咖啡'

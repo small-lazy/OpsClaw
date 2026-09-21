@@ -17,8 +17,8 @@ ALIASES = {
     'refund_amount': ('refunded_amount_minor', 'refund_amount', '退款金额', '已退款金额'),
     'paid_at': ('paid_at', '支付时间', '付款时间', '订单支付时间'),
     'status': ('status', '订单状态', '订单当前状态'),
-    'school': ('school', '学校', '院校', '学校名称'),
-    'college': ('college', '学院', '学院名称'),
+    'school': ('school', '品牌', '市场', '品牌名称', '市场名称', '学校', '院校', '学校名称'),
+    'college': ('college', '品类', '客群', '品类名称', '客群名称', '学院', '学院名称'),
     'product': ('product', '产品', '商品名称', '商品标题', '商品'),
 }
 PAID = {'paid', 'completed', 'shipped', 'delivered', 'refunded', 'partially_refunded', '已付款', '已支付', '待发货', '待收货', '已发货', '交易成功', '已完成', '已退款', '部分退款', '退款成功'}
@@ -296,7 +296,7 @@ def analyze(conn, start, end, *, anomaly_threshold=0.3, min_orders=5):
                 cb = signal_groups[1][(dimension, *key)] if dimension != 'product' else 0
                 signal_change = (ca - cb) / cb if signals_complete and cb and dimension != 'product' else None
                 candidate_id = 'factor-' + secrets.token_hex(10)
-                candidates.append({'id': candidate_id, 'report_id': report_id, 'status': 'pending_review', 'dimension': dimension, 'name': key[-1], 'school': item['school'], 'hypothesis': '站内关注变化可能与订单变化有关' if signal_change is not None else '订单变化原因需要补充证据', 'evidence': {'orders': evidence, 'signals_current': ca if dimension != 'product' else None, 'signals_previous': cb if dimension != 'product' else None, 'signals_yoy': signal_change}, 'causal_status': 'unconfirmed', 'next_steps': ['核对渠道覆盖、活动和价格变化', '对照招生节点与产品供给变化', '补充站内聚合信号并人工核验']})
+                candidates.append({'id': candidate_id, 'report_id': report_id, 'status': 'pending_review', 'dimension': dimension, 'name': key[-1], 'school': item['school'], 'hypothesis': '站内关注变化可能与订单变化有关' if signal_change is not None else '订单变化原因需要补充证据', 'evidence': {'orders': evidence, 'signals_current': ca if dimension != 'product' else None, 'signals_previous': cb if dimension != 'product' else None, 'signals_yoy': signal_change}, 'causal_status': 'unconfirmed', 'next_steps': ['核对渠道覆盖、活动和价格变化', '对照商业活动节点与产品供给变化', '补充站内聚合信号并人工核验']})
         groups[dimension] = grouped
     counts = lambda records: {kind: sum(r['count'] for r in records if r['type'] == kind) for kind in ('dm', 'comment', 'like', 'favorite')}
     sc, sp = counts(current_signals), counts(previous_signals)

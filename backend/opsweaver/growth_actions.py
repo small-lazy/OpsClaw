@@ -139,9 +139,9 @@ def propose(connection, event, parameters):
     if parameters.get('asset_id'):
         assets = [asset for asset in assets if asset['id'] == parameters['asset_id']]
     if len(assets) != 1:
-        raise DomainError('CONTENT_ASSET_REQUIRED', '请为该学校和学院选择唯一的已登记内容资产。', 422)
+        raise DomainError('CONTENT_ASSET_REQUIRED', '请为该品牌或市场及品类或客群选择唯一的已登记内容资产。', 422)
     asset = assets[0]
-    count = _number(parameters.get('admissions_count'), '招生人数', 1, 10**8, True)
+    count = _number(parameters.get('admissions_count'), '潜在人群规模', 1, 10**8, True)
     rate = _number(parameters.get('conversion_rate'), '历史转化率', 0, 1)
     price = _number(parameters.get('average_order_value_minor'), '客单价', 1, 10**10, True)
     cap = _number(parameters.get('budget_cap_minor'), '预算上限', 1, _hard_limit('GROWTH_MAX_BUDGET_MINOR', 1000000), True)
