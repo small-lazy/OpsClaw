@@ -22,6 +22,7 @@
 **/*.p12
 **/*.pfx
 **/credentials.json
+**/credentials/
 **/secrets.json
 
 /mcp.config.json
@@ -55,6 +56,9 @@
 !/docs/qa/growth-settings-desktop.png
 !/docs/qa/growth-mobile.png
 !/docs/qa/growth-factors-desktop.png
+!/docs/qa/agents-desktop.png
+!/docs/qa/model-connections-desktop.png
+!/docs/qa/agents-mobile.png
 
 /opsweaver_design/
 

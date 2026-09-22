@@ -4,6 +4,8 @@ MCP 适配器通过带令牌的本地 HTTP API 访问 OpsClaw。当前实现并�
 
 ## 安装与配置
 
+直接在 OpsClaw 内配置模型并运行 Agent，请参阅 [模型连接与 Agent 工作台](AGENTS.md)。本页说明外部 Agent 如何通过 MCP 访问工作区。
+
 先安装后端依赖并启动 OpsClaw API。默认 API 基址为 `http://127.0.0.1:8100/api/v1/mcp`。适配器从 `OPSWEAVER_MCP_TOKEN` 读取令牌，未设置时读取后端目录的 `data/mcp.token`。该文件由主后端生成。令牌不会被写入 MCP 工具结果。
 
 客户端配置示例，请替换 Python 和脚本的绝对路径：

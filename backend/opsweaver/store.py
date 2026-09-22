@@ -45,6 +45,9 @@ def initialize() -> None:
         connection.execute("CREATE TABLE IF NOT EXISTS dataset_rows(dataset_id TEXT NOT NULL,row_index INTEGER NOT NULL,document TEXT NOT NULL,PRIMARY KEY(dataset_id,row_index))")
         from .growth_api import initialize as initialize_growth
         initialize_growth(connection)
+        from . import model_providers, agent_runtime
+        model_providers.initialize(connection)
+        agent_runtime.initialize(connection)
         fresh = not connection.execute("SELECT 1 FROM metadata WHERE key='initialized'").fetchone()
         if fresh:
             seed = json.loads((ROOT / "seed.json").read_text(encoding="utf-8"))

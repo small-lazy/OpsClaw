@@ -32,6 +32,8 @@ async def lifespan(app):
     finally:
         stop.set()
         await worker
+        from .ai_api import shutdown
+        await shutdown()
 
 
 app = FastAPI(title="OpsClaw Local API", version="0.1.0", lifespan=lifespan)
@@ -309,3 +311,6 @@ def business_schema():
 
 from .growth_api import create_router as create_growth_router
 app.include_router(create_growth_router(session))
+
+from .ai_api import create_router as create_ai_router
+app.include_router(create_ai_router(session))

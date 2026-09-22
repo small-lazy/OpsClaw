@@ -72,6 +72,7 @@ import { seed } from "../lib/seed";
 import type { components } from "../lib/api.generated";
 import { SkillsPage } from "./skills-page";
 import { GrowthPage } from "./growth-page";
+import { AIWorkspace } from "./ai-workspace";
 import {
   DataPage,
   OnboardingPage,
@@ -282,7 +283,7 @@ const navGroups = [
       { url: "/overview", label: "运营总览", icon: LayoutDashboard },
       { url: "/growth", label: "增长工作台", icon: TrendingUp },
       { url: "/incidents", label: "行动缺口", icon: ClipboardList },
-      { url: "/agents", label: "Agent 运行", icon: Bot },
+      { url: "/agents", label: "Agent 工作台", icon: Bot },
       { url: "/approvals", label: "审批中心", icon: FileCheck2 },
       { url: "/actions", label: "动作台账", icon: CheckCheck },
     ],
@@ -2347,7 +2348,7 @@ function App() {
               <Incidents {...props} />
             )
           ) : root === "agents" ? (
-            <Agents {...props} />
+            <AIWorkspace notify={notify} legacy={<Agents {...props} />} />
           ) : root === "runs" ? (
             <RunPage {...props} id={pathname.split("/")[2]} />
           ) : root === "approvals" ? (
