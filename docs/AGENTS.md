@@ -4,6 +4,17 @@
 
 ![Agent 模板与任务入口](qa/agents-desktop.png)
 
+## 内部 Agent 与外部 Agent
+
+OpsClaw 支持两种使用方式，它们共享同一套数据、规则和业务工具：
+
+1. **内部 Agent**：用户直接在 OpsClaw 的 Agent 页面输入任务，所选大模型根据 Agent 指令和当前工具结果决定下一步调用什么工具，完成多轮分析后输出结论。
+2. **外部 Agent**：Claude、Codex、GPT 或企业自建 Agent 通过 MCP 读取 Skill、业务上下文和授权工具，在外部客户端中完成推理与交互。
+
+两者不是“一个 Agent 再调用另一个 Agent”的默认关系。外部 Agent 接入时，优先直接复用 OpsClaw 的底层 Tool；内部 Agent 则是 OpsClaw 自己提供的原生交互入口。
+
+OpsClaw 仍然把确定性逻辑留在后端。例如金额、订单量、同比、客户价值、ROI、任务状态和幂等检查由代码或数据库计算；模型主要负责理解任务、选择工具、综合多来源证据和形成建议。涉及审批、CRM 执行、充值或预算修改等高风险动作时，继续走既有人工审批和审计流程。
+
 ## 配置模型服务
 
 ![模型连接配置](qa/model-connections-desktop.png)
