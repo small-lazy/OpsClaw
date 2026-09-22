@@ -2,6 +2,16 @@
 
 MCP 适配器通过带令牌的本地 HTTP API 访问 OpsClaw。当前实现并验证的目标传输方式是 **stdio**；HTTP MCP 尚未启用，`--http` 会明确退出，不会在 8102 端口启动服务。
 
+## MCP 在整体架构中的作用
+
+MCP 是 OpsClaw 对外提供业务能力的标准入口，不是内部 Agent 运行的前置条件。
+
+- 用户直接使用 OpsClaw 时，可以由平台内部 Agent 调用业务 Tool。
+- 用户已经在 Claude、Codex、GPT 或企业自建 Agent 中工作时，可以通过 MCP 直接调用 OpsClaw 的 Skill、业务上下文和受控 Tool。
+- 两种方式共用同一套数据、规则与 Tool。正常情况下，外部 Agent 不需要再调用 OpsClaw 内部模型，避免不必要的模型嵌套。
+
+Skill 主要保存可变化的业务 SOP，例如调查顺序、证据要求、输出格式和禁止事项；已经写在代码里的确定性规则，例如金额计算、状态判断、阈值检测和幂等校验，不需要在 Skill 中重复描述。
+
 ## 安装与配置
 
 直接在 OpsClaw 内配置模型并运行 Agent，请参阅 [模型连接与 Agent 工作台](AGENTS.md)。本页说明外部 Agent 如何通过 MCP 访问工作区。
