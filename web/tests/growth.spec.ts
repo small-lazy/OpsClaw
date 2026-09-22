@@ -4,7 +4,7 @@ test('增长工作台完成字段映射、同比分析、事件审批与方案�
   test.setTimeout(90000);
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
   expect((await page.request.post('/api/v1/workspace/session')).ok()).toBeTruthy();
-  async function capture(filename:string){await page.evaluate(async()=>{window.scrollTo(0,0);await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});await page.screenshot({path:`../../docs/qa/${filename}`,fullPage:true,animations:'disabled'});}
+  async function capture(filename:string){await page.evaluate(async()=>{window.scrollTo(0,0);await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});await page.screenshot({path:`../docs/qa/${filename}`,fullPage:true,animations:'disabled'});}
   const suffix=Date.now();const brand="生活方式品牌";const filename=`春季上新订单-${suffix}.csv`;
   const rows=['订单号,支付时间,实付金额,商品名称,品牌,品类,订单状态'];
   for(let i=0;i<12;i++)rows.push(`PREV-${suffix}-${i},2025-03-18 10:00:00,199,轻量徒步背包,${brand},户外用品,paid`);

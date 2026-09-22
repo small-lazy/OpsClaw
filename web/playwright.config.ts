@@ -7,7 +7,7 @@ export default defineConfig({
   retries: 0,
   reporter: [
     ["list"],
-    ["html", { open: "never", outputFolder: "../../docs/qa/browser-report" }],
+    ["html", { open: "never", outputFolder: "../docs/qa/browser-report" }],
   ],
   use: {
     baseURL: "http://127.0.0.1:3100",
@@ -17,5 +17,5 @@ export default defineConfig({
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
   },
-  outputDir: "../../docs/qa/browser-results",
+  outputDir: "../docs/qa/browser-results",
 });

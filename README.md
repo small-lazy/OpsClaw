@@ -8,6 +8,8 @@ OpsClaw 是面向数据运营场景的 Agent 工作台，将数据查看、缺�
 
 [核心功能](#核心功能) · [界面预览](#界面预览) · [快速开始](#快速开始) · [导入与分析](#导入与分析) · [增长工作台](#增长工作台) · [Agent 与模型](#agent-与模型) · [Skill 与 MCP](#skill-与-mcp) · [开发](#开发)
 
+源码入口：[Web 前端](web) · [后端服务](backend/opsweaver) · [使用文档](docs) · [自动化测试](backend/tests)
+
 ![运营总览](docs/qa/overview-desktop.png)
 
 ## 核心功能
@@ -93,7 +95,7 @@ py -3.13 -m venv .\backend\.venv
 ### 3. 安装前端依赖并构建
 
 ```powershell
-Push-Location .\apps\web
+Push-Location .\web
 pnpm install --frozen-lockfile
 pnpm build
 Pop-Location
@@ -120,7 +122,7 @@ Set-Location .\backend
 **终端 3：前端**
 
 ```powershell
-Set-Location .\apps\web
+Set-Location .\web
 pnpm start
 ```
 
@@ -209,7 +211,7 @@ MCP 使用 **stdio** 传输，提供以下接口：
 保持两个后端服务运行，在前端终端使用 `pnpm dev` 替代 `pnpm start`，启用热更新。
 
 ```powershell
-Set-Location .\apps\web
+Set-Location .\web
 pnpm dev
 ```
 
@@ -218,7 +220,7 @@ pnpm dev
 ### 构建与检查
 
 ```powershell
-Push-Location .\apps\web
+Push-Location .\web
 pnpm typecheck
 pnpm build
 Pop-Location
@@ -239,7 +241,7 @@ Pop-Location
 浏览器测试使用 Google Chrome，运行前启动三个服务：
 
 ```powershell
-Push-Location .\apps\web
+Push-Location .\web
 pnpm exec playwright test
 Pop-Location
 ```
@@ -258,7 +260,7 @@ Pop-Location
 
 ```text
 .
-├── apps/web/                 # 前端页面、组件与浏览器测试
+├── web/                      # Web 前端、页面组件与浏览器测试
 ├── backend/
 │   ├── opsweaver/            # 业务逻辑、API、数据查询与 MCP
 │   ├── tests/                # 后端测试

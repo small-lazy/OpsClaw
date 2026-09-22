@@ -169,7 +169,7 @@ test("export reviewed desktop and mobile screenshots", async ({ page }) => {
       ).toBeVisible();
     await page.waitForTimeout(700);
     await page.screenshot({
-      path: `../../docs/qa/${name}-desktop.png`,
+      path: `../docs/qa/${name}-desktop.png`,
       fullPage: true,
     });
   }
@@ -177,7 +177,7 @@ test("export reviewed desktop and mobile screenshots", async ({ page }) => {
   await page.goto("/overview");
   await page.waitForTimeout(500);
   await page.screenshot({
-    path: "../../docs/qa/overview-mobile.png",
+    path: "../docs/qa/overview-mobile.png",
     fullPage: true,
   });
 });
@@ -231,7 +231,7 @@ test("custom Skill editor validates JSON, saves and persists over reload", async
     ).toBeVisible();
     await dialog.getByLabel("保存后启用").check();
     await page.screenshot({
-      path: "../../docs/qa/skill-editor-desktop.png",
+      path: "../docs/qa/skill-editor-desktop.png",
       fullPage: true,
     });
     await dialog.getByRole("button", { name: "保存 Skill" }).click();
@@ -245,7 +245,7 @@ test("custom Skill editor validates JSON, saves and persists over reload", async
     "<Python executable>",
   );
   await page.screenshot({
-    path: "../../docs/qa/mcp-desktop.png",
+    path: "../docs/qa/mcp-desktop.png",
     fullPage: true,
   });
 });

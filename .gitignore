@@ -66,10 +66,10 @@
 *.ps1
 *.cmd
 
-/apps/web/next-env.d.ts
+/web/next-env.d.ts
 
 /docs/design/
 /docs/decisions/
 /docs/qa/verification.md
-/apps/web/AGENTS.md
-/apps/web/CLAUDE.md
+/web/AGENTS.md
+/web/CLAUDE.md

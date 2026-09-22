@@ -19,5 +19,5 @@ test('直接进入工作区，无账户入口，内置记录支持分页', async
   await records.getByRole('button', { name: '下一页' }).click();
   await expect(records.locator('tbody tr').first()).not.toHaveText(first);
   await expect(records).toContainText('26–50');
-  await page.screenshot({ path: '../../docs/qa/data-records-desktop.png', fullPage: true });
+  await page.screenshot({ path: '../docs/qa/data-records-desktop.png', fullPage: true });
 });

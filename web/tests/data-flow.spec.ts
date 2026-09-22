@@ -43,16 +43,16 @@ test('批量文件独立导入、失败重试与分析结果刷新后保留', as
   await expect(numericRow).toContainText('100 / 200');
   await expect(numericRow).toContainText('400');
   await expect(detail).toContainText('华东');
-  await page.screenshot({ path: '../../docs/qa/import-analysis-desktop.png', fullPage: true });
+  await page.screenshot({ path: '../docs/qa/import-analysis-desktop.png', fullPage: true });
   await page.getByRole('button', { name: '关闭分析' }).click();
   await page.reload();
   await expect(library.getByRole('row').filter({ hasText: filename })).toHaveCount(1);
   await expect(library.getByRole('row').filter({ hasText: retryName })).toHaveCount(1);
   await expect(page.locator('.import-history-table').getByRole('row').filter({ hasText: badName })).toContainText('失败');
-  await page.screenshot({ path: '../../docs/qa/import-desktop.png', fullPage: true });
+  await page.screenshot({ path: '../docs/qa/import-desktop.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.screenshot({ path: '../../docs/qa/import-mobile.png', fullPage: true, animations: 'disabled' });
+  await page.screenshot({ path: '../docs/qa/import-mobile.png', fullPage: true, animations: 'disabled' });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole('button', { name: '返回数据中心' }).click();
   await expect(page.getByRole('heading', { name: '数据中心', exact: true })).toBeVisible();
@@ -77,7 +77,7 @@ test('MCP 只读调用引发 revision 更新时，设置页保留未保存的名
   const originalName = before.settings.workspace_name;
   const draftName = `${originalName} · 未保存编辑验证`;
   await name.fill(draftName);
-  const token = (await readFile(resolve(__dirname, '../../../backend/data/mcp.token'), 'utf-8')).trim();
+  const token = (await readFile(resolve(__dirname, '../../backend/data/mcp.token'), 'utf-8')).trim();
   const refreshed = page.waitForResponse(async response => {
     if (!response.url().endsWith('/api/v1/console') || !response.ok()) return false;
     return (await response.json()).data.revision > before.revision;
