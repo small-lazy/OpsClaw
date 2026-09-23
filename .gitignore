@@ -65,6 +65,10 @@
 
 *.ps1
 *.cmd
+!/start.ps1
+!/stop.ps1
+!/启动行策.cmd
+!/停止行策.cmd
 
 /web/next-env.d.ts
 

@@ -5,6 +5,28 @@ import { resolve } from 'node:path';
 
 test.use({ trace: 'off' });
 
+test('本地校验失败的文件只能移除，不会发送导入请求', async ({ page }) => {
+  expect((await page.request.post('/api/v1/workspace/session')).ok()).toBeTruthy();
+  let uploadRequests = 0;
+  await page.route('**/api/v1/imports', async route => {
+    if (route.request().method() === 'POST') uploadRequests++;
+    await route.continue();
+  });
+  await page.goto('/onboarding');
+  await page.getByLabel('选择导入文件').setInputFiles([
+    { name: '不支持.txt', mimeType: 'text/plain', buffer: Buffer.from('hello') },
+    { name: '空文件.csv', mimeType: 'text/csv', buffer: Buffer.alloc(0) },
+  ]);
+  const queue = page.locator('.import-queue');
+  await expect(queue.getByRole('listitem')).toHaveCount(2);
+  await expect(queue.getByRole('button', { name: '重试' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '开始导入', exact: true })).toBeDisabled();
+  await queue.getByRole('button', { name: '移除 不支持.txt' }).click();
+  await queue.getByRole('button', { name: '移除 空文件.csv' }).click();
+  await expect(queue).toHaveCount(0);
+  expect(uploadRequests).toBe(0);
+});
+
 test('批量文件独立导入、失败重试与分析结果刷新后保留', async ({ page }) => {
   expect((await page.request.post('/api/v1/workspace/session')).ok()).toBeTruthy();
   const suffix = Date.now();
